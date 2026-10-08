@@ -42,9 +42,10 @@ export default function Footer() {
         </div>
 
         <div style={{ display: 'flex', gap: '20px', fontSize: '13px' }}>
-          <Link href="/customer/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Customer Portal</Link>
-          <Link href="/supplier/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Supplier Portal</Link>
-          <Link href="/admin/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Admin Console</Link>
+          <Link href="/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Customer Portal</Link>
+          <Link href="/supplier/signup" style={{ color: '#0D9488', textDecoration: 'none', fontWeight: '800' }}>Become a Supplier</Link>
+          <Link href="/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Supplier Portal</Link>
+          <Link href="/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Admin Console</Link>
         </div>
       </div>
     </footer>

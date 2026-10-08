@@ -95,6 +95,10 @@ const getSupplierProfile = async (req, res, next) => {
     supplier.esign = esign.length > 0 ? esign[0] : null;
     supplier.verifications = verifications;
 
+    if (typeof supplier.services === 'string') {
+      try { supplier.services = JSON.parse(supplier.services); } catch (_) {}
+    }
+
     return res.status(200).json({
       success: true,
       data: supplier

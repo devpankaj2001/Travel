@@ -93,11 +93,23 @@ export default function AuthModal({ isOpen = true, onClose, initialRole = 'custo
   // Sync initial props whenever modal opens
   useEffect(() => {
     if (isOpen || isPage) {
+      if (initialRole === 'supplier' && initialMode === 'signup') {
+        if (onClose) onClose();
+        router.push('/supplier/signup');
+        return;
+      }
       setActiveRole(initialRole);
       setActiveMode(initialMode);
       setErrorMsg('');
     }
   }, [isOpen, isPage, initialRole, initialMode]);
+
+  useEffect(() => {
+    if (activeRole === 'supplier' && activeMode === 'signup') {
+      if (onClose) onClose();
+      router.push('/supplier/signup');
+    }
+  }, [activeRole, activeMode]);
 
   // Close on Escape key
   useEffect(() => {
@@ -454,7 +466,15 @@ export default function AuthModal({ isOpen = true, onClose, initialRole = 'custo
               </button>
               <button
                 type="button"
-                onClick={() => { setActiveMode('signup'); setErrorMsg(''); }}
+                onClick={() => {
+                  if (activeRole === 'supplier') {
+                    if (onClose) onClose();
+                    router.push('/supplier/signup');
+                  } else {
+                    setActiveMode('signup');
+                    setErrorMsg('');
+                  }
+                }}
                 style={{
                   flex: 1,
                   padding: '10px 0',

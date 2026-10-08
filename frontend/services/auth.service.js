@@ -2,6 +2,19 @@ import { apiRequest } from './api';
 
 export const authService = {
   // -----------------------------------------------------------
+  // Unified Universal Login (All Roles)
+  // -----------------------------------------------------------
+  async login(data) {
+    const res = await apiRequest('/auth/login', { method: 'POST', body: data });
+    if (res.success && res.data?.tokens?.accessToken) {
+      localStorage.setItem('token', res.data.tokens.accessToken);
+      localStorage.setItem('refreshToken', res.data.tokens.refreshToken);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+    }
+    return res;
+  },
+
+  // -----------------------------------------------------------
   // Customer Auth
   // -----------------------------------------------------------
   async customerSignup(data) {
@@ -59,6 +72,20 @@ export const authService = {
       localStorage.setItem('user', JSON.stringify(res.data.user));
     }
     return res;
+  },
+
+  async uploadDocument(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiRequest('/auth/upload-document', {
+      method: 'POST',
+      body: formData,
+      isFormData: true
+    });
+  },
+
+  async getCategories() {
+    return apiRequest('/activities/categories', { method: 'GET' });
   },
 
   // -----------------------------------------------------------

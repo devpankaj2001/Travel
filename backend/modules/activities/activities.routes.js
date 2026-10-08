@@ -3,6 +3,40 @@ const router = express.Router();
 const { authenticate, requireRole, requirePermission, requireSupplierApproved } = require('../../middleware/auth.middleware');
 const { query } = require('../../database/connection');
 
+// Categories listing from MySQL table
+router.get('/categories', async (req, res, next) => {
+  try {
+    const categories = await query(
+      'SELECT id, name, slug, description, icon_name, image_url, display_order FROM categories WHERE is_active = TRUE ORDER BY display_order ASC, name ASC'
+    );
+
+    // Map common subcategories for standard rich onboarding selection
+    const subcategoryMap = {
+      'adventure-theme-parks': ['Trekking', 'Camping', 'Rock Climbing', 'Theme Parks', 'Ziplining', 'Bungee Jumping'],
+      'water-sports': ['Scuba Diving', 'Jet Skiing', 'Kayaking', 'Parasailing', 'Speed Boating', 'Snorkeling'],
+      'desert-safari': ['Dune Bashing', 'Camel Safari', 'Quad Biking', 'Desert Camping', 'Sand Boarding'],
+      'city-tours': ['Guided Walking Tours', 'Hop-on Hop-off Bus', 'Monument Visits', 'Night Sightseeing', 'Museum Tours'],
+      'luxury-vip': ['Helicopter Tours', 'Private Yacht Rental', 'VIP Chauffeur Experiences', 'Luxury Desert Glamping'],
+      'cultural-heritage': ['Historical Walks', 'Heritage Village Tour', 'Cooking Classes', 'Temple & Shrine Visits'],
+      'day-trips': ['Mountain Day Excursions', 'Island Hopping', 'Waterfall Trek', 'Countryside Tour'],
+      'nature-wildlife': ['Jungle Safari', 'Bird Watching', 'Forest Exploration', 'Wildlife Sanctuary Tour']
+    };
+
+    const enrichedCategories = categories.map(cat => ({
+      ...cat,
+      subcategories: subcategoryMap[cat.slug] || ['Guided Tours', 'Day Trips', 'Special Experiences', 'Group Activities']
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: enrichedCategories.length,
+      data: enrichedCategories
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Public listing
 router.get('/', async (req, res, next) => {
   try {

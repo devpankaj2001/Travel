@@ -88,31 +88,31 @@ export default function HeroHeaderSection({
                     role="menu"
                     className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2.5 border border-slate-100 text-slate-800 z-50"
                   >
-                    <button
-                      type="button"
-                      onClick={() => { setPartnersDropdown(false); onOpenAuth('supplier', 'signup'); }}
-                      className="w-full text-left block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors cursor-pointer"
+                    <Link
+                      href="/supplier/signup"
+                      onClick={() => setPartnersDropdown(false)}
+                      className="w-full text-left block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors cursor-pointer text-slate-800"
                     >
                       Become a Supplier
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setPartnersDropdown(false); onOpenAuth('supplier', 'signup'); }}
-                      className="w-full text-left block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors cursor-pointer"
+                    </Link>
+                    <Link
+                      href="/supplier/signup"
+                      onClick={() => setPartnersDropdown(false)}
+                      className="w-full text-left block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors cursor-pointer text-slate-800"
                     >
                       Become a Travel Partner
-                    </button>
+                    </Link>
                     <a
                       href="#about-us"
                       onClick={() => setPartnersDropdown(false)}
-                      className="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors"
+                      className="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors text-slate-800"
                     >
                       About Us
                     </a>
                     <a
                       href="#contact-support"
                       onClick={() => setPartnersDropdown(false)}
-                      className="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors"
+                      className="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors text-slate-800"
                     >
                       Contact Us
                     </a>
@@ -141,9 +141,8 @@ export default function HeroHeaderSection({
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth('customer', 'signin')}
+                <Link
+                  href="/login"
                   style={{
                     color: '#FFFFFF',
                     borderColor: 'rgba(255, 255, 255, 0.8)',
@@ -153,7 +152,7 @@ export default function HeroHeaderSection({
                   className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold border rounded-lg hover:bg-white hover:!text-[#333F70] transition-all duration-200 cursor-pointer"
                 >
                   Login / Sign Up
-                </button>
+                </Link>
               )}
             </div>
 
@@ -223,20 +222,20 @@ export default function HeroHeaderSection({
                     </button>
                     {mobilePartnersOpen && (
                       <div className="pl-4 flex flex-col gap-2.5 pt-2 text-sm text-white/80">
-                        <button
-                          type="button"
-                          onClick={() => { setMobileMenuOpen(false); onOpenAuth('supplier', 'signup'); }}
-                          className="text-left text-white/90 hover:text-[#D6F5EE] py-1 cursor-pointer"
+                        <Link
+                          href="/supplier/signup"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="text-left text-white/90 hover:text-[#D6F5EE] py-1 cursor-pointer block"
                         >
                           Become a Supplier
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setMobileMenuOpen(false); onOpenAuth('supplier', 'signup'); }}
-                          className="text-left text-white/90 hover:text-[#D6F5EE] py-1 cursor-pointer"
+                        </Link>
+                        <Link
+                          href="/supplier/signup"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="text-left text-white/90 hover:text-[#D6F5EE] py-1 cursor-pointer block"
                         >
                           Become a Travel Partner
-                        </button>
+                        </Link>
                         <a href="#about-us" onClick={() => setMobileMenuOpen(false)} className="text-white/90 hover:text-[#D6F5EE] py-1">About Us</a>
                         <a href="#contact-support" onClick={() => setMobileMenuOpen(false)} className="text-white/90 hover:text-[#D6F5EE] py-1">Contact Us</a>
                       </div>
@@ -255,13 +254,13 @@ export default function HeroHeaderSection({
                     Go to Dashboard
                   </Link>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => { setMobileMenuOpen(false); onOpenAuth('customer', 'signin'); }}
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
                     className="w-full flex items-center justify-center px-5 py-3 text-center text-sm font-bold bg-[#D6F5EE] text-[#333F70] rounded-xl hover:bg-white transition-colors cursor-pointer"
                   >
                     Login / Sign Up
-                  </button>
+                  </Link>
                 )}
               </div>
             </div>

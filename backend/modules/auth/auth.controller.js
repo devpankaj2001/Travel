@@ -517,9 +517,18 @@ const supplierSignup = async (req, res, next) => {
       company_name,
       first_name,
       last_name,
+      owner_name,
+      contact_person,
       email,
       password,
       phone,
+      business_type,
+      website,
+      main_category,
+      sub_category,
+      services,
+      description,
+      documents,
       trade_license_no,
       tax_id,
       business_address,
@@ -533,6 +542,18 @@ const supplierSignup = async (req, res, next) => {
     if (!cleanEmail) {
       return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
+
+    // Determine first and last name from owner_name / contact_person if not explicitly provided
+    let finalFirstName = (first_name || '').trim();
+    let finalLastName = (last_name || '').trim();
+    const compositeName = (owner_name || contact_person || '').trim();
+    if (!finalFirstName && compositeName) {
+      const parts = compositeName.split(' ');
+      finalFirstName = parts[0] || 'Supplier';
+      finalLastName = parts.slice(1).join(' ') || 'Partner';
+    }
+    if (!finalFirstName) finalFirstName = 'Supplier';
+    if (!finalLastName) finalLastName = 'Partner';
 
     // Check if user email already exists in users table
     const existing = await query('SELECT id FROM users WHERE email = ?', [cleanEmail]);
@@ -557,12 +578,19 @@ const supplierSignup = async (req, res, next) => {
     const registrationData = {
       role: 'supplier',
       supplierRoleId,
-      company_name,
-      first_name,
-      last_name,
+      company_name: (company_name || '').trim(),
+      first_name: finalFirstName,
+      last_name: finalLastName,
       email: cleanEmail,
       passwordHash,
       phone: cleanPhone,
+      business_type: business_type || null,
+      website: website || null,
+      main_category: main_category || null,
+      sub_category: sub_category || null,
+      services: services || [],
+      description: description || null,
+      documents: Array.isArray(documents) ? documents : [],
       trade_license_no: trade_license_no || null,
       tax_id: tax_id || null,
       business_address: business_address || null,
@@ -582,7 +610,7 @@ const supplierSignup = async (req, res, next) => {
 
     // Send OTP to Email (same code)
     await sendOtpEmail({
-      user: { id: null, email: registrationData.email, first_name, last_name },
+      user: { id: null, email: registrationData.email, first_name: finalFirstName, last_name: finalLastName },
       code: commonOtp,
       purpose: 'Supplier Account Verification'
     });
@@ -691,20 +719,46 @@ const supplierVerifyOtp = async (req, res, next) => {
         userId = userRes.insertId;
 
         const suppRes = await query(
-          `INSERT INTO suppliers (user_id, company_name, trade_license_no, tax_id, contact_person, business_address, city, country, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'under_review')`,
+          `INSERT INTO suppliers (user_id, company_name, trade_license_no, tax_id, contact_person, business_address, city, country, business_type, website, main_category, sub_category, services, description, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'under_review')`,
           [
             userId,
             payload.company_name,
             payload.trade_license_no,
             payload.tax_id,
-            `${payload.first_name} ${payload.last_name}`,
+            `${payload.first_name} ${payload.last_name}`.trim(),
             payload.business_address,
             payload.city,
-            payload.country
+            payload.country,
+            payload.business_type,
+            payload.website,
+            payload.main_category,
+            payload.sub_category,
+            payload.services ? JSON.stringify(payload.services) : null,
+            payload.description
           ]
         );
         supplierId = suppRes.insertId;
+
+        // Persist uploaded documents into supplier_documents table
+        if (payload.documents && Array.isArray(payload.documents)) {
+          for (const doc of payload.documents) {
+            if (doc.document_url && doc.document_name) {
+              await query(
+                `INSERT INTO supplier_documents (supplier_id, document_type, document_name, document_url, file_size, status)
+                 VALUES (?, ?, ?, ?, ?, 'pending')`,
+                [supplierId, doc.document_type || 'other', doc.document_name, doc.document_url, doc.file_size || null]
+              );
+            }
+          }
+        }
+
+        // Insert into supplier_profiles for consistency
+        await query(
+          `INSERT INTO supplier_profiles (user_id, company_name, legal_name, business_reg_no, tax_id, contact_person, contact_email, contact_phone, city, country, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'under_verification')`,
+          [userId, payload.company_name, payload.company_name, payload.trade_license_no, payload.tax_id, `${payload.first_name} ${payload.last_name}`.trim(), payload.email, payload.phone, payload.city, payload.country]
+        );
 
         await query(
           `INSERT INTO supplier_verifications (supplier_id, verification_type, status, token_or_otp, expires_at, verified_at)
@@ -1419,6 +1473,115 @@ const getMe = async (req, res) => {
   });
 };
 
+/**
+ * Unified Login (Supports Site Admin, Accountant, Supplier, Customer automatically with dynamic role redirection)
+ * POST /api/v1/auth/login
+ */
+const unifiedLogin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email address and password are required'
+      });
+    }
+
+    const cleanEmail = email.toString().trim().toLowerCase();
+
+    const users = await query(
+      `SELECT u.id, u.role_id, u.first_name, u.last_name, u.email, u.phone, 
+              u.password_hash, u.account_type, u.customer_segment, u.status AS user_status,
+              u.email_verified_at, u.phone_verified_at,
+              r.slug AS role_slug, r.name AS role_name,
+              s.id AS supplier_id, s.company_name, s.status AS supplier_status
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       LEFT JOIN suppliers s ON u.id = s.user_id
+       WHERE LOWER(u.email) = ? OR u.phone = ?`,
+      [cleanEmail, cleanEmail]
+    );
+
+    if (users.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    const user = users[0];
+
+    if (user.user_status === 'suspended') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is suspended. Please contact platform support.'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Role-based target destination
+    let redirectTo = '/customer/profile';
+    if (['site_admin', 'admin'].includes(user.role_slug)) {
+      redirectTo = '/admin/dashboard';
+    } else if (['accountant', 'site_accountant', 'finance'].includes(user.role_slug)) {
+      redirectTo = '/admin/dashboard';
+    } else if (user.role_slug === 'supplier') {
+      redirectTo = '/supplier/dashboard';
+    } else {
+      redirectTo = '/customer/profile';
+    }
+
+    const tokens = await generateAuthTokens(user);
+    const permissions = await getUserPermissions(user.role_id);
+
+    await recordActivityLog({
+      userId: user.id,
+      action: 'USER_LOGIN',
+      entityType: 'users',
+      entityId: user.id,
+      description: `User authenticated via Unified Login: ${user.email} [${user.role_slug}]`,
+      req
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user.id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email: user.email,
+          phone: user.phone,
+          account_type: user.account_type,
+          role: user.role_slug,
+          role_name: user.role_name,
+          email_verified: Boolean(user.email_verified_at),
+          phone_verified: Boolean(user.phone_verified_at),
+          supplier: user.supplier_id ? {
+            id: user.supplier_id,
+            company_name: user.company_name,
+            status: user.supplier_status
+          } : null,
+          permissions
+        },
+        tokens,
+        role: user.role_slug,
+        redirectTo
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   customerSignup,
   customerVerifyOtp,
@@ -1435,5 +1598,6 @@ module.exports = {
   resetPassword,
   refreshToken,
   logout,
-  getMe
+  getMe,
+  unifiedLogin
 };

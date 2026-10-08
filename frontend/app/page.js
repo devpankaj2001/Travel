@@ -29,6 +29,14 @@ export default function HomePage() {
   });
 
   const openAuth = (targetRole, targetMode) => {
+    if (targetRole === 'supplier' && targetMode === 'signup') {
+      router.push('/supplier/signup');
+      return;
+    }
+    if (targetMode === 'signin') {
+      router.push('/login');
+      return;
+    }
     setAuthModal({
       isOpen: true,
       role: targetRole || 'customer',
@@ -91,8 +99,8 @@ export default function HomePage() {
 
         {/* 8. SUPPLIER & TRAVEL PARTNER PROMOTIONS (Host With Travel & Grow Your Business) */}
         <PartnerPromos
-          onBecomeSupplier={() => openAuth('supplier', 'signup')}
-          onBecomePartner={() => openAuth('supplier', 'signup')}
+          onBecomeSupplier={() => router.push('/supplier/signup')}
+          onBecomePartner={() => router.push('/supplier/signup')}
         />
 
         {/* 9. VIP MOBILE APP SHOWCASE */}

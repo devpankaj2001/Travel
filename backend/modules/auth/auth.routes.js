@@ -20,6 +20,11 @@ const {
 } = require('./auth.validator');
 
 // -------------------------------------------------------------
+// Unified Universal Login (Auto Role Detection & Redirection)
+// -------------------------------------------------------------
+router.post('/login', authRateLimiter, customerLoginRules, validate, authController.unifiedLogin);
+
+// -------------------------------------------------------------
 // Customer Authentication & OTP Verification
 // -------------------------------------------------------------
 router.post('/customer/signup', otpRateLimiter, customerSignupRules, validate, authController.customerSignup);
@@ -35,6 +40,28 @@ router.post('/supplier/verify-otp', supplierVerifyOtpRules, validate, authContro
 router.post('/supplier/resend-otp', otpRateLimiter, authController.supplierResendOtp);
 router.post('/supplier/verify-email', supplierVerifyEmailRules, validate, authController.supplierVerifyEmail);
 router.post('/supplier/login', authRateLimiter, customerLoginRules, validate, authController.supplierLogin);
+
+const upload = require('../../middleware/upload.middleware');
+router.post('/upload-document', (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file provided' });
+    }
+    const documentUrl = `/uploads/documents/${req.file.filename}`;
+    return res.status(200).json({
+      success: true,
+      message: 'Document uploaded successfully',
+      data: {
+        document_url: documentUrl,
+        document_name: req.file.originalname,
+        file_size: req.file.size
+      }
+    });
+  });
+});
 
 // -------------------------------------------------------------
 // Admin Authentication (Site Admin, Accountant, Finance)

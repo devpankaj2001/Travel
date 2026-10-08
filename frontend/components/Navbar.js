@@ -68,7 +68,7 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {!isAuthenticated ? (
             <>
-              <Link href="/customer/login" style={{
+              <Link href="/login" style={{
                 padding: '8px 16px',
                 borderRadius: '10px',
                 border: '1px solid #E2E8F0',
@@ -78,9 +78,21 @@ export default function Navbar() {
                 fontWeight: '700',
                 textDecoration: 'none'
               }}>
-                Customer Login
+                Sign In
               </Link>
-              <Link href="/supplier/login" style={{
+              <Link href="/supplier/signup" style={{
+                padding: '8px 16px',
+                borderRadius: '10px',
+                backgroundColor: '#0D9488',
+                color: '#FFFFFF',
+                fontSize: '13px',
+                fontWeight: '800',
+                textDecoration: 'none',
+                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)'
+              }}>
+                Become a Supplier
+              </Link>
+              <Link href="/login" style={{
                 padding: '8px 16px',
                 borderRadius: '10px',
                 border: '1px solid #E2E8F0',
@@ -92,7 +104,7 @@ export default function Navbar() {
               }}>
                 Supplier Portal
               </Link>
-              <Link href="/admin/login" style={{
+              <Link href="/login" style={{
                 padding: '8px 16px',
                 borderRadius: '10px',
                 background: '#333F70',

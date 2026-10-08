@@ -105,7 +105,7 @@ export default function StudioFooter({ onOpenAuth }) {
         <div className="footer-studio-col">
           <h3 className="footer-studio-col-title">Partners</h3>
           <ul className="footer-studio-links">
-            <li><a href="#!" data-route="becomeSupplier">Become a Supplier</a></li>
+            <li><a href="/supplier/signup">Become a Supplier</a></li>
             <li><a href="#!" data-route="becomeTravelPartner">Become a Travel Partner</a></li>
             <li><a href="#!" data-route="corporateBookings">Corporate Bookings</a></li>
             <li><a href="#!" data-route="affiliateProgram">Affiliate Program</a></li>
