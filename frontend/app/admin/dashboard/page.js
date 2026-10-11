@@ -40,6 +40,7 @@ import {
   BadgeAlert
 } from 'lucide-react';
 import Link from 'next/link';
+import AdminShell from '../../../components/admin/AdminShell';
 
 export default function AdminDashboardPage() {
   const { user, role, logout } = useAuth();
@@ -193,6 +194,19 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const changeDocumentReviewStatus = async (status) => {
+    if (!docReviewSupplier || status === docReviewSupplier.status) return;
+    const note = `Status changed to ${status.replace(/_/g, ' ')} after document review`;
+    const res = await authService.updateAdminSupplierStatus(docReviewSupplier.id, { status, notes: note, reason: note });
+    if (res.success) {
+      addToast(res.message || 'Supplier status updated', 'success');
+      setDocReviewSupplier((prev) => (prev ? { ...prev, status } : prev));
+      await loadAllData();
+    } else {
+      addToast(res.message || 'Could not change the supplier status', 'error');
+    }
+  };
+
   const handleUpdateSupplierStatus = async (e) => {
     e.preventDefault();
     if (!statusModalSupplier) return;
@@ -318,6 +332,7 @@ export default function AdminDashboardPage() {
   });
 
   return (
+    <AdminShell title="Dashboard">
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#FAFAF8',
@@ -560,7 +575,7 @@ export default function AdminDashboardPage() {
               transition: 'all 0.2s ease'
             }}
           >
-            <Building2 size={15} /> Supplier Approvals
+            <Building2 size={15} /> Supplier Documents
             {suppliers.filter(s => s.status !== 'approved').length > 0 && (
               <span style={{
                 background: '#EF4444',
@@ -1990,7 +2005,21 @@ export default function AdminDashboardPage() {
                 Approved: <strong style={{ color: '#0D9488' }}>{docReviewSupplier.documents?.filter(d => d.status === 'approved').length || 0}</strong>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {hasPermission('supplier.approve') && (
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '750', color: '#334155' }}>
+                    Change status
+                    <select
+                      value={docReviewSupplier.status}
+                      onChange={(e) => changeDocumentReviewStatus(e.target.value)}
+                      style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontWeight: '700' }}
+                    >
+                      {['pending', 'under_review', 'documents_required', 'approved', 'rejected', 'suspended'].map((status) => (
+                        <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <button
                   onClick={() => setDocReviewSupplier(null)}
                   style={{
@@ -2339,5 +2368,6 @@ export default function AdminDashboardPage() {
         </div>
       )}
     </div>
+    </AdminShell>
   );
 }

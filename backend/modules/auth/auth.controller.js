@@ -2,7 +2,14 @@ const bcrypt = require('bcryptjs');
 const { query, transaction } = require('../../database/connection');
 const { generateAuthTokens, verifyRefreshToken, revokeRefreshToken, generateRandomToken } = require('../../services/token.service');
 const { generateOtp, verifyOtp } = require('../../services/otp.service');
-const { sendVerificationEmail, sendPasswordResetEmail, sendOtpEmail } = require('../../services/email.service');
+const {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendOtpEmail,
+  sendSupplierApplicationReceivedEmail,
+  sendAdminSupplierApplicationEmail
+} = require('../../services/email.service');
+const { validateSupplierRegistration, persistSupplierApplication } = require('./supplierRegistration');
 const { recordActivityLog } = require('../../middleware/audit.middleware');
 const config = require('../../config');
 
@@ -513,139 +520,50 @@ const customerLogin = async (req, res, next) => {
  */
 const supplierSignup = async (req, res, next) => {
   try {
-    const {
-      account_type = 'corporate', // 'individual' | 'corporate'
-      company_name,
-      legal_name,
-      display_name,
-      first_name,
-      last_name,
-      owner_name,
-      contact_person,
-      email,
-      password,
-      phone,
-      business_type,
-      website,
-      // Multi-category & Service Arrays
-      main_categories = [],
-      sub_categories = [],
-      custom_subcategories = [],
-      services = [],
-      custom_services = [],
-      add_ons = [],
-      main_category,
-      sub_category,
-      description,
-      documents,
-      trade_license_no,
-      tax_id,
-      pan_number,
-      business_address,
-      residential_address,
-      city,
-      country = config.business.defaultCountry
-    } = req.body;
-
-    const cleanEmail = email ? email.toString().trim().toLowerCase() : '';
-    const cleanPhone = phone ? phone.toString().trim() : null;
-
-    if (!cleanEmail) {
-      return res.status(400).json({ success: false, message: 'Email address is required.' });
-    }
-
-    // Determine first and last name from legal_name / owner_name / contact_person
-    let finalFirstName = (first_name || '').trim();
-    let finalLastName = (last_name || '').trim();
-    const compositeName = (legal_name || owner_name || contact_person || '').trim();
-    if (!finalFirstName && compositeName) {
-      const parts = compositeName.split(' ');
-      finalFirstName = parts[0] || 'Supplier';
-      finalLastName = parts.slice(1).join(' ') || 'Partner';
-    }
-    if (!finalFirstName) finalFirstName = 'Supplier';
-    if (!finalLastName) finalLastName = 'Partner';
-
-    // Validation by account type
-    const isIndividual = account_type === 'individual';
-    let finalCompanyName = company_name ? company_name.trim() : null;
-    if (isIndividual && !finalCompanyName) {
-      finalCompanyName = display_name ? display_name.trim() : `${finalFirstName} ${finalLastName}`;
-    }
-
-    // Check if user email already exists in users table
-    const existing = await query('SELECT id FROM users WHERE email = ?', [cleanEmail]);
-    if (existing.length > 0) {
-      return res.status(409).json({
+    const check = validateSupplierRegistration(req.body);
+    if (!check.ok) {
+      return res.status(422).json({
         success: false,
-        message: 'An account with this email address already exists.'
+        message: check.message,
+        errors: check.errors
       });
     }
 
-    // Get supplier role ID
+    const input = check.data;
+    const existing = await query('SELECT id FROM users WHERE email = ?', [input.email]);
+    if (existing.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this email address already exists. Sign in or use a different email.'
+      });
+    }
+
     const roleRows = await query('SELECT id FROM roles WHERE slug = "supplier"');
     if (roleRows.length === 0) {
-      return res.status(500).json({ success: false, message: 'Supplier role configuration missing' });
+      return res.status(500).json({ success: false, message: 'Supplier role configuration missing.' });
     }
-    const supplierRoleId = roleRows[0].id;
 
     const salt = await bcrypt.genSalt(config.security.bcryptSaltRounds);
-    const passwordHash = await bcrypt.hash(password, salt);
-
-    // Normalize categories arrays
-    let finalMainCats = Array.isArray(main_categories) ? main_categories : [];
-    if (finalMainCats.length === 0 && main_category) finalMainCats = [main_category];
-
-    let finalSubCats = Array.isArray(sub_categories) ? sub_categories : [];
-    if (finalSubCats.length === 0 && sub_category) finalSubCats = [sub_category];
-
+    const passwordHash = await bcrypt.hash(input.password, salt);
+    const { password, ...safeInput } = input;
     const registrationData = {
+      ...safeInput,
       role: 'supplier',
-      supplierRoleId,
-      account_type: isIndividual ? 'individual' : 'corporate',
-      company_name: finalCompanyName,
-      legal_name: (legal_name || `${finalFirstName} ${finalLastName}`).trim(),
-      display_name: display_name ? display_name.trim() : null,
-      first_name: finalFirstName,
-      last_name: finalLastName,
-      email: cleanEmail,
-      passwordHash,
-      phone: cleanPhone,
-      business_type: isIndividual ? 'Individual Proprietorship' : (business_type || 'Private Limited'),
-      website: website || null,
-      main_categories: finalMainCats,
-      sub_categories: finalSubCats,
-      custom_subcategories: Array.isArray(custom_subcategories) ? custom_subcategories : [],
-      services: Array.isArray(services) ? services : [],
-      custom_services: Array.isArray(custom_services) ? custom_services : [],
-      add_ons: Array.isArray(add_ons) ? add_ons : [],
-      main_category: finalMainCats[0] || 'Attractions',
-      sub_category: finalSubCats[0] || 'Tours',
-      description: description || null,
-      documents: Array.isArray(documents) ? documents : [],
-      trade_license_no: trade_license_no || null,
-      tax_id: tax_id || pan_number || null,
-      business_address: business_address || null,
-      residential_address: residential_address || null,
-      city: city || null,
-      country
+      supplierRoleId: roleRows[0].id,
+      passwordHash
     };
 
-    // Generate single 6-digit OTP for both Mobile & Email with registration metadata
     const otpResult = await generateOtp({
       userId: null,
       email: registrationData.email,
       phone: registrationData.phone,
       purpose: 'supplier_signup',
-      metadata: registrationData
-    });
-    const commonOtp = otpResult.code;
-
-    // Send OTP to Email (same code)
-    await sendOtpEmail({
-      user: { id: null, email: registrationData.email, first_name: finalFirstName, last_name: finalLastName },
-      code: commonOtp,
-      purpose: 'Supplier Account Verification'
+      metadata: registrationData,
+      user: {
+        email: registrationData.email,
+        first_name: registrationData.first_name,
+        last_name: registrationData.last_name
+      }
     });
 
     await recordActivityLog({
@@ -653,22 +571,20 @@ const supplierSignup = async (req, res, next) => {
       action: 'SUPPLIER_SIGNUP_OTP_DISPATCHED',
       entityType: 'otps',
       entityId: otpResult.otpId,
-      description: `Supplier registration initiated (${registrationData.account_type}): ${registrationData.company_name} (${cleanEmail})`,
+      description: `Supplier registration initiated (${registrationData.account_type}): ${registrationData.company_name} (${registrationData.email})`,
       req
     });
 
     return res.status(201).json({
       success: true,
-      message: 'Supplier registration initiated. Please verify your OTP to complete registration and create your account.',
+      message: `A verification code has been sent to ${registrationData.email} and ${registrationData.phone}. It is valid for ${config.sms.otpExpiryMinutes} minutes.`,
       data: {
         account_type: registrationData.account_type,
         company_name: registrationData.company_name,
         email: registrationData.email,
         phone: registrationData.phone,
         status: 'pending_verification',
-        verification: {
-          otpCode: commonOtp
-        }
+        expires_in_minutes: config.sms.otpExpiryMinutes
       }
     });
   } catch (error) {
@@ -730,159 +646,121 @@ const supplierVerifyOtp = async (req, res, next) => {
 
     let userId;
     let supplierId;
+    let application = null;
+    let emailSent = false;
+    let adminNotified = false;
 
-    // 2. If OTP has pending registration metadata, insert into users & suppliers table NOW!
-    if (verifyResult.otpRecord && verifyResult.otpRecord.metadata) {
-      const payload = verifyResult.otpRecord.metadata;
+    const readMetadata = (record) => {
+      if (!record) return null;
+      let payload = record.metadata;
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload); } catch { payload = null; }
+      }
+      return payload;
+    };
 
-      // Check if user was already inserted
-      const existing = await query('SELECT id FROM users WHERE email = ?', [payload.email]);
-      if (existing.length === 0) {
-        const userRes = await query(
-          `INSERT INTO users (role_id, first_name, last_name, email, password_hash, phone, account_type, customer_segment, status, email_verified_at, phone_verified_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 'retail', 'active', NOW(), NOW())`,
-          [
-            payload.supplierRoleId,
-            payload.first_name,
-            payload.last_name,
-            payload.email,
-            payload.passwordHash,
-            payload.phone,
-            payload.account_type || 'corporate'
-          ]
-        );
-        userId = userRes.insertId;
+    const notifyRegistration = async (created) => {
+      const accountTypeLabel = created.accountType === 'individual' ? 'Individual Person' : 'Registered Corporate Entity';
+      try {
+        const supplierMail = await sendSupplierApplicationReceivedEmail({
+          user: {
+            id: created.userId,
+            email: created.email,
+            first_name: created.firstName,
+            last_name: created.lastName
+          },
+          reference: created.reference,
+          submittedAt: created.submittedAt,
+          accountTypeLabel
+        });
+        emailSent = Boolean(supplierMail?.success);
+      } catch (err) {
+        console.error('[Supplier Registration] Applicant email failed:', err.message);
+      }
 
-        const suppRes = await query(
-          `INSERT INTO suppliers (user_id, account_type, company_name, legal_name, display_name, trade_license_no, tax_id, contact_person, business_address, residential_address, city, country, business_type, website, main_category, sub_category, services, description, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'under_review')`,
-          [
-            userId,
-            payload.account_type || 'corporate',
-            payload.company_name,
-            payload.legal_name || `${payload.first_name} ${payload.last_name}`.trim(),
-            payload.display_name || null,
-            payload.trade_license_no || null,
-            payload.tax_id || null,
-            `${payload.first_name} ${payload.last_name}`.trim(),
-            payload.business_address || null,
-            payload.residential_address || null,
-            payload.city || null,
-            payload.country,
-            payload.business_type || null,
-            payload.website || null,
-            payload.main_category || null,
-            payload.sub_category || null,
-            payload.services ? JSON.stringify(payload.services) : null,
-            payload.description || null
-          ]
-        );
-        supplierId = suppRes.insertId;
-
-        // Persist Category Mappings (Section 3.2)
-        if (Array.isArray(payload.main_categories)) {
-          for (const mSlug of payload.main_categories) {
-            const mRows = await query('SELECT id FROM main_categories WHERE slug = ? OR name = ?', [mSlug, mSlug]);
-            if (mRows.length > 0) {
-              const mainId = mRows[0].id;
-              // Link subcategories under this main category if matched
-              if (Array.isArray(payload.sub_categories)) {
-                for (const sName of payload.sub_categories) {
-                  const sRows = await query('SELECT id FROM sub_categories WHERE main_category_id = ? AND (slug = ? OR name = ?)', [mainId, sName, sName]);
-                  if (sRows.length > 0) {
-                    await query(
-                      `INSERT INTO supplier_category_mappings (supplier_id, main_category_id, sub_category_id)
-                       VALUES (?, ?, ?)`,
-                      [supplierId, mainId, sRows[0].id]
-                    );
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        // Persist Custom Sub-Categories (Section 3.3)
-        if (Array.isArray(payload.custom_subcategories)) {
-          for (const customItem of payload.custom_subcategories) {
-            const customName = typeof customItem === 'string' ? customItem : customItem.name;
-            const mainCatId = typeof customItem === 'object' && customItem.main_category_id ? customItem.main_category_id : 1;
-            if (customName && customName.trim()) {
-              await query(
-                `INSERT INTO supplier_custom_subcategories (supplier_id, main_category_id, name, status)
-                 VALUES (?, ?, ?, 'pending_review')`,
-                [supplierId, mainCatId, customName.trim()]
-              );
-            }
-          }
-        }
-
-        // Persist Custom Services (Section 3.4)
-        if (Array.isArray(payload.custom_services)) {
-          for (const servName of payload.custom_services) {
-            if (servName && servName.trim()) {
-              await query(
-                `INSERT INTO supplier_custom_services (supplier_id, service_name, status)
-                 VALUES (?, ?, 'pending_review')`,
-                [supplierId, servName.trim()]
-              );
-            }
-          }
-        }
-
-        // Persist uploaded documents into supplier_documents table
-        if (payload.documents && Array.isArray(payload.documents)) {
-          for (const doc of payload.documents) {
-            if (doc.document_url && doc.document_name) {
-              await query(
-                `INSERT INTO supplier_documents (supplier_id, document_type, document_name, document_url, file_size, status)
-                 VALUES (?, ?, ?, ?, ?, 'pending')`,
-                [supplierId, doc.document_type || 'other', doc.document_name, doc.document_url, doc.file_size || null]
-              );
-            }
-          }
-        }
-
-        // Insert into supplier_profiles for consistency
-        await query(
-          `INSERT INTO supplier_profiles (user_id, company_name, legal_name, business_reg_no, tax_id, contact_person, contact_email, contact_phone, city, country, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'under_verification')`,
-          [userId, payload.company_name, payload.legal_name || payload.company_name, payload.trade_license_no, payload.tax_id, `${payload.first_name} ${payload.last_name}`.trim(), payload.email, payload.phone, payload.city, payload.country]
-        );
-
-        await query(
-          `INSERT INTO supplier_verifications (supplier_id, verification_type, status, token_or_otp, expires_at, verified_at)
-           VALUES (?, 'otp', 'verified', ?, NOW(), NOW())`,
-          [supplierId, code]
-        );
-
-        // Section 7: In-System Notification for Admin & Super Admin
+      try {
         const adminUsers = await query(
-          `SELECT u.id, u.email FROM users u JOIN roles r ON u.role_id = r.id WHERE r.slug IN ('admin', 'site_admin')`
+          `SELECT u.id, u.email, u.first_name FROM users u
+           JOIN roles r ON u.role_id = r.id
+           WHERE r.slug IN ('admin', 'site_admin') AND u.status = 'active'`
         );
+        const reviewUrl = `${config.app.frontendUrl}/admin/suppliers/${created.supplierId}`;
         for (const admin of adminUsers) {
           await query(
-            `INSERT INTO notifications (user_id, title, message, type)
-             VALUES (?, 'New Supplier Registration', ?, 'supplier_registration')`,
+            `INSERT INTO notifications (user_id, title, message, type, status, metadata)
+             VALUES (?, ?, ?, 'system', 'sent', ?)`,
             [
               admin.id,
-              `New Supplier Registration – ${payload.company_name} (${payload.account_type === 'individual' ? 'Individual Person' : 'Registered Corporate Entity'}) is waiting for verification.`
+              'New Supplier Registration',
+              `${created.supplierName} is waiting for verification.`,
+              JSON.stringify({
+                kind: 'supplier',
+                supplierId: created.supplierId,
+                reference: created.reference,
+                href: `/admin/suppliers/${created.supplierId}`
+              })
             ]
           );
+          const adminMail = await sendAdminSupplierApplicationEmail({
+            admin,
+            application: created,
+            reviewUrl
+          });
+          if (adminMail?.success) adminNotified = true;
         }
+        if (adminUsers.length > 0) adminNotified = true;
+      } catch (err) {
+        console.error('[Supplier Registration] Admin notification failed:', err.message);
+      }
+    };
+
+    // Account and supplier records are created only after a valid OTP.
+    if (verifyResult.otpRecord && verifyResult.otpRecord.metadata) {
+      const payload = readMetadata(verifyResult.otpRecord);
+
+      if (!payload?.email || !payload?.passwordHash) {
+        return res.status(400).json({
+          success: false,
+          message: 'This verification code has no registration details. Please submit the application again.'
+        });
+      }
+
+      const existing = await query('SELECT id FROM users WHERE email = ?', [payload.email]);
+      if (existing.length === 0) {
+        try {
+          application = await persistSupplierApplication(payload);
+        } catch (err) {
+          if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+              success: false,
+              message: 'An account with this email address already exists.'
+            });
+          }
+          throw err;
+        }
+        userId = application.userId;
+        supplierId = application.supplierId;
+        await notifyRegistration(application);
       } else {
         userId = existing[0].id;
-        const suppRows = await query('SELECT id FROM suppliers WHERE user_id = ?', [userId]);
+        const suppRows = await query('SELECT id, application_reference, status, created_at, company_name, account_type FROM suppliers WHERE user_id = ?', [userId]);
         supplierId = suppRows[0]?.id;
         await query(
           `UPDATE users SET status = 'active', email_verified_at = NOW(), phone_verified_at = NOW() WHERE id = ?`,
           [userId]
         );
-        if (supplierId) {
-          await query(
-            `UPDATE suppliers SET status = 'under_review' WHERE id = ?`,
-            [supplierId]
-          );
+        if (suppRows[0]) {
+          application = {
+            userId,
+            supplierId,
+            reference: suppRows[0].application_reference || `SUP-${new Date().getFullYear()}-${String(supplierId).padStart(6, '0')}`,
+            submittedAt: suppRows[0].created_at || new Date().toISOString(),
+            status: suppRows[0].status || 'pending',
+            email: payload.email,
+            firstName: payload.first_name,
+            lastName: payload.last_name,
+            accountType: suppRows[0].account_type || payload.account_type
+          };
         }
       }
     } else {
@@ -935,13 +813,48 @@ const supplierVerifyOtp = async (req, res, next) => {
       action: 'SUPPLIER_OTP_VERIFIED',
       entityType: 'suppliers',
       entityId: supplierId,
-      description: `Supplier OTP verified successfully and account created/activated`,
+      description: 'Supplier OTP verified. Application submitted with pending approval status.',
       req
     });
 
+    const userRows = await query(
+      `SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.account_type, u.customer_segment,
+              u.status, u.role_id, r.slug AS role_slug
+       FROM users u
+       JOIN roles r ON u.role_id = r.id
+       WHERE u.id = ?`,
+      [userId]
+    );
+    const sessionUser = userRows[0];
+    const tokens = sessionUser ? await generateAuthTokens(sessionUser) : null;
+    const permissions = sessionUser ? await getUserPermissions(sessionUser.role_id) : [];
+    const reference = application?.reference || (supplierId ? `SUP-${new Date().getFullYear()}-${String(supplierId).padStart(6, '0')}` : null);
+
     return res.status(200).json({
       success: true,
-      message: 'OTP verified successfully! Your account has been created and verified. Please log in.'
+      message: 'Application submitted successfully. Your supplier account is pending approval.',
+      data: {
+        application_reference: reference,
+        status: 'pending',
+        submitted_at: application?.submittedAt || new Date().toISOString(),
+        email_sent: emailSent,
+        admin_notified: adminNotified,
+        account_type: application?.accountType || null,
+        user: sessionUser ? {
+          id: sessionUser.id,
+          first_name: sessionUser.first_name,
+          last_name: sessionUser.last_name,
+          email: sessionUser.email,
+          phone: sessionUser.phone,
+          account_type: application?.accountType || sessionUser.account_type,
+          customer_segment: sessionUser.customer_segment,
+          role: sessionUser.role_slug,
+          status: 'active',
+          supplier_status: 'pending',
+          permissions
+        } : null,
+        tokens
+      }
     });
   } catch (error) {
     next(error);
@@ -965,23 +878,23 @@ const supplierResendOtp = async (req, res, next) => {
 
     // Check if user is already in users table
     const users = await query(
-      `SELECT id, email, phone FROM users WHERE (email = ? OR phone = ?)`,
+      `SELECT id, email, phone, first_name, last_name FROM users WHERE (email = ? OR phone = ?)`,
       [cleanEmail || '', cleanPhone || '']
     );
 
     if (users.length > 0) {
       const user = users[0];
-      const otpResult = await generateOtp({
+      await generateOtp({
         userId: user.id,
         email: user.email,
         phone: user.phone,
-        purpose: 'supplier_verification'
+        purpose: 'supplier_verification',
+        user
       });
 
       return res.status(200).json({
         success: true,
-        message: 'A new OTP has been dispatched.',
-        data: { otpCode: otpResult.code }
+        message: `A new verification code has been sent to your email and mobile number. It is valid for ${config.sms.otpExpiryMinutes} minutes.`
       });
     }
 
@@ -1002,18 +915,22 @@ const supplierResendOtp = async (req, res, next) => {
       try { meta = JSON.parse(meta); } catch (_) {}
     }
 
-    const otpResult = await generateOtp({
+    await generateOtp({
       userId: null,
       email: meta.email,
       phone: meta.phone,
       purpose: 'supplier_signup',
-      metadata: meta
+      metadata: meta,
+      user: {
+        email: meta.email,
+        first_name: meta.first_name,
+        last_name: meta.last_name
+      }
     });
 
     return res.status(200).json({
       success: true,
-      message: 'A new OTP has been dispatched to your phone and email.',
-      data: { otpCode: otpResult.code }
+      message: `A new verification code has been sent to your email and mobile number. It is valid for ${config.sms.otpExpiryMinutes} minutes.`
     });
   } catch (error) {
     next(error);

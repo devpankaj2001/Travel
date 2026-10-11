@@ -89,14 +89,14 @@ export default function HeroHeaderSection({
                     className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2.5 border border-slate-100 text-slate-800 z-50"
                   >
                     <Link
-                      href="/supplier/signup"
+                      href="/become-a-supplier"
                       onClick={() => setPartnersDropdown(false)}
                       className="w-full text-left block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors cursor-pointer text-slate-800"
                     >
                       Become a Supplier
                     </Link>
                     <Link
-                      href="/supplier/signup"
+                      href="/become-a-supplier"
                       onClick={() => setPartnersDropdown(false)}
                       className="w-full text-left block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors cursor-pointer text-slate-800"
                     >
@@ -223,14 +223,14 @@ export default function HeroHeaderSection({
                     {mobilePartnersOpen && (
                       <div className="pl-4 flex flex-col gap-2.5 pt-2 text-sm text-white/80">
                         <Link
-                          href="/supplier/signup"
+                          href="/become-a-supplier"
                           onClick={() => setMobileMenuOpen(false)}
                           className="text-left text-white/90 hover:text-[#D6F5EE] py-1 cursor-pointer block"
                         >
                           Become a Supplier
                         </Link>
                         <Link
-                          href="/supplier/signup"
+                          href="/become-a-supplier"
                           onClick={() => setMobileMenuOpen(false)}
                           className="text-left text-white/90 hover:text-[#D6F5EE] py-1 cursor-pointer block"
                         >

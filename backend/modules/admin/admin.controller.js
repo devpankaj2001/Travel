@@ -216,7 +216,7 @@ const listSuppliers = async (req, res, next) => {
       supp.documents = docs;
 
       const esign = await query(
-        'SELECT id, document_title, signed_status, signer_name, signed_at, esign_reference FROM esign_documents WHERE supplier_id = ? ORDER BY id DESC LIMIT 1',
+        'SELECT id, document_title, signed_status, signed_at, esign_reference FROM esign_documents WHERE supplier_id = ? ORDER BY id DESC LIMIT 1',
         [supp.id]
       );
       supp.esign = esign.length > 0 ? esign[0] : null;
@@ -371,20 +371,7 @@ const approveSupplier = async (req, res, next) => {
 
     const supplier = suppliers[0];
 
-    // REQUIREMENT 6.1: Enforce that E-Sign contract is signed before approval
-    const esign = await query(
-      `SELECT id, signed_status FROM esign_documents WHERE supplier_id = ? AND signed_status = 'signed'`,
-      [supplierId]
-    );
-
-    if (esign.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot approve supplier: Legal supplier agreement (E-Sign) has not been signed by the supplier yet.'
-      });
-    }
-
-    // Check KYC documents
+    // Registration approval is based on the uploaded verification documents.
     const docs = await query(`SELECT id, status FROM supplier_documents WHERE supplier_id = ?`, [supplierId]);
     if (docs.length === 0) {
       return res.status(400).json({

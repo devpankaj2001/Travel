@@ -14,6 +14,7 @@ export default function Navbar() {
     pathname.startsWith('/admin') ||
     pathname.startsWith('/customer') ||
     pathname.startsWith('/supplier') ||
+    pathname.startsWith('/become-a-supplier') ||
     pathname.startsWith('/listing') ||
     pathname.startsWith('/toursandattractions')
   ) {
@@ -82,7 +83,7 @@ export default function Navbar() {
               }}>
                 Sign In
               </Link>
-              <Link href="/supplier/signup" style={{
+              <Link href="/become-a-supplier" style={{
                 padding: '8px 16px',
                 borderRadius: '10px',
                 backgroundColor: '#0D9488',

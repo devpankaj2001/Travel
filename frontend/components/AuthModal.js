@@ -95,7 +95,7 @@ export default function AuthModal({ isOpen = true, onClose, initialRole = 'custo
     if (isOpen || isPage) {
       if (initialRole === 'supplier' && initialMode === 'signup') {
         if (onClose) onClose();
-        router.push('/supplier/signup');
+        router.push('/become-a-supplier');
         return;
       }
       setActiveRole(initialRole);
@@ -107,7 +107,7 @@ export default function AuthModal({ isOpen = true, onClose, initialRole = 'custo
   useEffect(() => {
     if (activeRole === 'supplier' && activeMode === 'signup') {
       if (onClose) onClose();
-      router.push('/supplier/signup');
+      router.push('/become-a-supplier');
     }
   }, [activeRole, activeMode]);
 
@@ -469,7 +469,7 @@ export default function AuthModal({ isOpen = true, onClose, initialRole = 'custo
                 onClick={() => {
                   if (activeRole === 'supplier') {
                     if (onClose) onClose();
-                    router.push('/supplier/signup');
+                    router.push('/become-a-supplier');
                   } else {
                     setActiveMode('signup');
                     setErrorMsg('');

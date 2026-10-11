@@ -338,13 +338,14 @@ export default function SupplierDashboardPage() {
 
       if (res.success && res.data) {
         setSupplier(res.data);
+        const sessionName = [user?.first_name, user?.last_name].filter(Boolean).join(' ');
         setProfileForm({
           account_type: res.data.account_type || 'corporate',
-          company_name: res.data.company_name || 'Adventure Tours Pvt. Ltd.',
-          legal_name: res.data.legal_name || res.data.company_name || 'Rahul Sharma',
+          company_name: res.data.company_name || sessionName || 'Adventure Tours Pvt. Ltd.',
+          legal_name: res.data.legal_name || res.data.company_name || sessionName || 'Rahul Sharma',
           display_name: res.data.display_name || '',
-          owner_name: res.data.owner_name || res.data.contact_person || 'Rahul Sharma',
-          contact_person: res.data.contact_person || 'Rahul Sharma',
+          owner_name: res.data.owner_name || res.data.contact_person || sessionName || 'Rahul Sharma',
+          contact_person: res.data.contact_person || sessionName || 'Rahul Sharma',
           business_type: res.data.business_type || 'Private Limited',
           tax_id: res.data.tax_id || '27ABCDE1234F2Z5',
           pan_number: res.data.pan_number || 'ABCDE1234F',
@@ -354,7 +355,7 @@ export default function SupplierDashboardPage() {
           country: res.data.country || 'India',
           website: res.data.website || 'www.adventuretours.com',
           description: res.data.description || 'We provide guided trekking tours, camping experiences and nature exploration activities across India.',
-          email: res.data.user_email || user?.email || 'rahul@adventuretours.com',
+          email: res.data.user_email || res.data.email || user?.email || '',
           phone: res.data.phone || '+91 98765 43210',
           main_category: res.data.main_category || 'Adventure',
           sub_category: res.data.sub_category || 'Trekking',
@@ -404,15 +405,15 @@ export default function SupplierDashboardPage() {
       ]
     : [
         { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, badge: null },
+        { id: 'activities', label: 'Activities', icon: Compass, badge: null },
+        { id: 'bookings', label: 'Bookings', icon: CalendarCheck, badge: null },
+        { id: 'payouts', label: 'Payments', icon: Wallet, badge: null },
+        { id: 'reviews', label: 'Reports', icon: Star, badge: null },
+        { id: 'documents', label: 'Documents', icon: FileText, badge: null },
+        { id: 'settings', label: 'Settings', icon: Settings, badge: null },
         { id: 'profile', label: 'My Profile', icon: Building2, badge: null },
-        { id: 'activities', label: 'Activities', icon: Compass, badge: '12' },
-        { id: 'bookings', label: 'Orders', icon: CalendarCheck, badge: '120' },
         { id: 'pricing', label: 'Pricing & Commission', icon: CreditCard, badge: null },
-        { id: 'payouts', label: 'Earnings & Settlements', icon: Wallet, badge: '₹75,000' },
-        { id: 'reviews', label: 'Reviews & Performance', icon: Star, badge: '4.6★' },
-        { id: 'documents', label: 'Documents & Legal', icon: FileText, badge: null },
-        { id: 'notifications', label: 'Notifications', icon: Bell, badge: '5' },
-        { id: 'settings', label: 'Settings', icon: Settings, badge: null }
+        { id: 'notifications', label: 'Notifications', icon: Bell, badge: null }
       ];
 
   // Open Screen 10 Activity Detail
@@ -552,6 +553,25 @@ export default function SupplierDashboardPage() {
     return true;
   });
 
+  const documentLabel = (type) => ({
+    id_proof: 'Identity Proof',
+    address_proof: 'Address Proof',
+    pan_card: 'PAN / Tax Identification',
+    business_registration: 'Business Registration Certificate',
+    gst_certificate: 'GST / Tax Registration',
+    other: 'Other Supporting Documents'
+  }[type] || String(type || 'Document').replace(/_/g, ' '));
+
+  const documentFileUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+    const origin = api.replace(/\/api\/v1\/?$/, '');
+    return `${origin}${url.startsWith('/') ? url : `/${url}`}`;
+  };
+
+  const uploadedDocuments = supplier?.documents || [];
+
   if (loading) {
     return (
       <div style={{
@@ -582,17 +602,16 @@ export default function SupplierDashboardPage() {
       {/* 1. LEFT SIDEBAR */}
       {/* ========================================================================= */}
       <aside style={{
-        width: '260px',
-        backgroundColor: '#FFFFFF',
-        borderRight: '1px solid #E2E8F0',
+        width: '240px',
+        backgroundColor: '#0b1f3a',
+        borderRight: '1px solid #0b1f3a',
         height: '100vh',
         position: 'sticky',
         top: 0,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        zIndex: 40,
-        boxShadow: '2px 0 12px rgba(15, 23, 42, 0.02)'
+        zIndex: 40
       }}>
         {/* Brand & Nav */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '24px 16px 16px' }}>
@@ -614,8 +633,8 @@ export default function SupplierDashboardPage() {
                 <Compass size={20} />
               </div>
               <div>
-                <span style={{ fontSize: '18px', fontWeight: '900', color: '#333F70', letterSpacing: '-0.5px', display: 'block', lineHeight: 1.1 }}>
-                  TRAVEL<span style={{ color: '#0D9488' }}>.</span>
+                <span style={{ fontSize: '18px', fontWeight: '900', color: '#FFFFFF', letterSpacing: '-0.5px', display: 'block', lineHeight: 1.1 }}>
+                  TravelHub
                 </span>
                 <span style={{ fontSize: '10px', fontWeight: '750', color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Supplier Console
@@ -643,8 +662,8 @@ export default function SupplierDashboardPage() {
                     padding: '10px 14px',
                     borderRadius: '10px',
                     border: 'none',
-                    backgroundColor: isActive ? '#333F70' : 'transparent',
-                    color: isActive ? '#FFFFFF' : '#475569',
+                    backgroundColor: isActive ? '#1d6fe8' : 'transparent',
+                    color: isActive ? '#FFFFFF' : '#dbe7f5',
                     fontSize: '13px',
                     fontWeight: isActive ? '800' : '650',
                     cursor: 'pointer',
@@ -653,7 +672,7 @@ export default function SupplierDashboardPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Icon size={17} style={{ color: isActive ? '#FFFFFF' : '#64748B' }} />
+                    <Icon size={17} style={{ color: isActive ? '#FFFFFF' : '#9fb3c8' }} />
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
@@ -695,11 +714,11 @@ export default function SupplierDashboardPage() {
                 {(profileForm.owner_name?.[0] || 'R').toUpperCase()}
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {profileForm.owner_name || 'Rahul Sharma'}
+                <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {profileForm.owner_name || 'Supplier'}
                 </div>
-                <div style={{ fontSize: '10.5px', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {profileForm.company_name || 'Adventure Tours'}
+                <div style={{ fontSize: '10.5px', color: '#9fb3c8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {profileForm.email || profileForm.company_name}
                 </div>
               </div>
             </div>
@@ -810,11 +829,12 @@ export default function SupplierDashboardPage() {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A', lineHeight: 1.2 }}>
-                  {profileForm.owner_name || 'Rahul Sharma'}
+                  {profileForm.owner_name || user?.first_name || 'Supplier'}
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748B' }}>
-                  {isPending ? 'Supplier (Pending)' : 'Adventure Tours Pvt. Ltd.'}
+                  {isPending ? 'Pending approval' : profileForm.email}
                 </div>
+                {!isPending ? <div style={{ fontSize: '11px', color: '#1d6fe8', fontWeight: 800 }}>Supplier</div> : null}
               </div>
             </div>
           </div>
@@ -1027,13 +1047,10 @@ export default function SupplierDashboardPage() {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
-                      {[
-                        { label: 'GST Certificate' },
-                        { label: 'PAN Card' },
-                        { label: 'Aadhaar Card' },
-                        { label: 'Address Proof' }
-                      ].map((item, idx) => (
-                        <div key={idx} style={{
+                      {uploadedDocuments.length === 0 ? (
+                        <div style={{ gridColumn: '1 / -1', color: '#64748B', fontSize: 13 }}>No documents uploaded yet.</div>
+                      ) : uploadedDocuments.map((doc) => (
+                        <div key={doc.id} style={{
                           padding: '16px',
                           borderRadius: '12px',
                           backgroundColor: '#F0FDF4',
@@ -1045,10 +1062,11 @@ export default function SupplierDashboardPage() {
                           gap: '6px'
                         }}>
                           <FileCheck size={26} style={{ color: '#10B981' }} />
-                          <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A' }}>{item.label}</span>
-                          <span style={{ fontSize: '10px', fontWeight: '800', color: '#059669', textTransform: 'uppercase' }}>
-                            Uploaded
-                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A' }}>{documentLabel(doc.document_type)}</span>
+                          <span style={{ fontSize: '11px', color: '#475569' }}>{doc.document_name}</span>
+                          {doc.document_url ? (
+                            <a href={documentFileUrl(doc.document_url)} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 800, color: '#1d6fe8' }}>View</a>
+                          ) : null}
                         </div>
                       ))}
                     </div>
@@ -1104,6 +1122,65 @@ export default function SupplierDashboardPage() {
                     }}>
                       <Calendar size={13} style={{ color: '#64748B' }} />
                       01 Oct 2026 - 31 Oct 2026
+                    </div>
+                  </div>
+                </div>
+
+                {/* Page 18: approved supplier overview */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
+                  {[
+                    ['Total Activities', activitiesList.length],
+                    ['Total Bookings', ordersList.length],
+                    ['Total Earnings', `₹${ordersList.reduce((sum, order) => sum + Number(String(order.amount).replace(/[^\d.]/g, '') || 0), 0).toLocaleString('en-IN')}`],
+                    ['Average Rating', activitiesList.length ? (activitiesList.reduce((sum, item) => sum + Number(item.rating || 0), 0) / activitiesList.length).toFixed(1) : '—']
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
+                      <div style={{ color: '#64748b', fontSize: 13, fontWeight: 700 }}>{label}</div>
+                      <div style={{ fontSize: 26, fontWeight: 900, marginTop: 6 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 16 }}>
+                  <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ margin: 0, fontSize: 16 }}>Recent Bookings</h3>
+                      <button type="button" onClick={() => setActiveTab('bookings')} style={{ border: 0, background: 'transparent', color: '#1d6fe8', fontWeight: 800, cursor: 'pointer' }}>View all</button>
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ color: '#64748b', textAlign: 'left' }}>
+                          {['Booking ID', 'Activity', 'Date', 'Amount', 'Status'].map((heading) => <th key={heading} style={{ padding: '8px 6px' }}>{heading}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ordersList.slice(0, 5).map((order) => (
+                          <tr key={order.id} style={{ borderTop: '1px solid #e2e8f0' }}>
+                            <td style={{ padding: '8px 6px' }}>{order.id}</td>
+                            <td style={{ padding: '8px 6px' }}>{order.activity}</td>
+                            <td style={{ padding: '8px 6px' }}>{order.date}</td>
+                            <td style={{ padding: '8px 6px' }}>{order.amount}</td>
+                            <td style={{ padding: '8px 6px' }}>{order.status}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ margin: 0, fontSize: 16 }}>Recent Activities</h3>
+                      <button type="button" onClick={() => setActiveTab('activities')} style={{ border: 0, background: 'transparent', color: '#1d6fe8', fontWeight: 800, cursor: 'pointer' }}>View all</button>
+                    </div>
+                    <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                      {activitiesList.slice(0, 4).map((activity) => (
+                        <div key={activity.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, borderBottom: '1px solid #f1f5f9', paddingBottom: 8 }}>
+                          <div>
+                            <div style={{ fontWeight: 800 }}>{activity.title}</div>
+                            <div style={{ color: '#64748b', fontSize: 12 }}>{activity.category}</div>
+                          </div>
+                          <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'capitalize', color: activity.status === 'active' ? '#15803d' : '#b45309' }}>{activity.status}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -1600,32 +1677,27 @@ export default function SupplierDashboardPage() {
                   backgroundColor: '#FFFFFF',
                   borderRadius: '18px',
                   padding: '28px',
-                  border: '1px solid #E2E8F0'
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
                 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                    {[
-                      { label: 'GST Certificate', status: 'Uploaded', icon: FileCheck },
-                      { label: 'PAN Card', status: 'Uploaded', icon: FileCheck },
-                      { label: 'Aadhaar Card', status: 'Uploaded', icon: FileCheck },
-                      { label: 'Address Proof', status: 'Uploaded', icon: FileCheck }
-                    ].map((d, idx) => (
-                      <div key={idx} style={{
-                        padding: '18px',
-                        borderRadius: '14px',
-                        backgroundColor: '#F8FAFC',
-                        border: '1px solid #E2E8F0',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        gap: '6px'
-                      }}>
-                        <d.icon size={26} style={{ color: '#16A34A' }} />
-                        <span style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>{d.label}</span>
-                        <span style={{ fontSize: '10.5px', fontWeight: '800', color: '#16A34A', textTransform: 'uppercase' }}>{d.status}</span>
+                  {uploadedDocuments.length === 0 ? (
+                    <p style={{ margin: 0, color: '#64748B', fontSize: 13 }}>No documents uploaded yet.</p>
+                  ) : uploadedDocuments.map((doc) => (
+                    <div key={doc.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 16px' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>{documentLabel(doc.document_type)}</div>
+                        <div style={{ fontSize: 12, color: '#64748B', marginTop: 3, wordBreak: 'break-word' }}>{doc.document_name}</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, marginTop: 4, textTransform: 'capitalize', color: doc.status === 'approved' ? '#15803d' : doc.status === 'rejected' ? '#dc2626' : '#b45309' }}>{String(doc.status || 'pending').replace(/_/g, ' ')}</div>
                       </div>
-                    ))}
-                  </div>
+                      {doc.document_url ? (
+                        <a href={documentFileUrl(doc.document_url)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#1d6fe8', fontWeight: 800, fontSize: 13, textDecoration: 'none', flexShrink: 0 }}>
+                          <Eye size={15} /> View
+                        </a>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -2715,27 +2787,21 @@ export default function SupplierDashboardPage() {
                   Uploaded KYC Documents
                 </h3>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                  {[
-                    { label: 'GST Certificate', status: 'Approved' },
-                    { label: 'PAN Card', status: 'Approved' },
-                    { label: 'Aadhaar Card', status: 'Approved' },
-                    { label: 'Address Proof', status: 'Approved' }
-                  ].map((doc, idx) => (
-                    <div key={idx} style={{
-                      padding: '16px',
-                      borderRadius: '12px',
-                      border: '1px solid #BBF7D0',
-                      backgroundColor: '#F0FDF4',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>{doc.label}</span>
-                        <Check size={14} style={{ color: '#16A34A' }} />
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {uploadedDocuments.length === 0 ? (
+                    <p style={{ margin: 0, color: '#64748B', fontSize: 13 }}>No documents uploaded yet.</p>
+                  ) : uploadedDocuments.map((doc) => (
+                    <div key={doc.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', padding: '14px 16px', borderRadius: 12, border: '1px solid #E2E8F0' }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>{documentLabel(doc.document_type)}</div>
+                        <div style={{ fontSize: 12, color: '#64748B', marginTop: 3 }}>{doc.document_name}</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, marginTop: 4, textTransform: 'capitalize', color: doc.status === 'approved' ? '#15803d' : doc.status === 'rejected' ? '#dc2626' : '#b45309' }}>{String(doc.status || 'pending').replace(/_/g, ' ')}</div>
                       </div>
-                      <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: '750' }}>Status: {doc.status}</span>
+                      {doc.document_url ? (
+                        <a href={documentFileUrl(doc.document_url)} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#1d6fe8', fontWeight: 800, fontSize: 13, textDecoration: 'none' }}>
+                          <Eye size={15} /> View
+                        </a>
+                      ) : null}
                     </div>
                   ))}
                 </div>

@@ -704,7 +704,7 @@ export default function CustomerSignupPage() {
                 </Link>
                 <span style={{ margin: '0 8px', color: '#CBD5E1' }}>•</span>
                 <Link
-                  href="/supplier/signup"
+                  href="/become-a-supplier"
                   style={{
                     color: '#333F70',
                     fontWeight: '750',

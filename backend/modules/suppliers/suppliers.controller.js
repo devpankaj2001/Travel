@@ -70,16 +70,15 @@ const getSupplierProfile = async (req, res, next) => {
 
     // Fetch documents
     const documents = await query(
-      `SELECT id, document_type, document_name, document_url, file_size, status, rejection_reason, 
-              expiry_date, uploaded_at, verified_at 
+      `SELECT id, document_type, document_name, document_url, file_size, status, rejection_reason,
+              uploaded_at, verified_at
        FROM supplier_documents WHERE supplier_id = ? ORDER BY id DESC`,
       [supplier.id]
     );
 
     // Fetch E-Sign agreement status
     const esign = await query(
-      `SELECT id, document_title, agreement_version, signed_status, signer_name, signature_data,
-              signed_at, ip_address, esign_reference, created_at
+      `SELECT id, document_title, document_url, signed_status, signed_at, ip_address, esign_reference, created_at
        FROM esign_documents WHERE supplier_id = ? ORDER BY id DESC LIMIT 1`,
       [supplier.id]
     );
@@ -576,9 +575,9 @@ const getEsignAgreement = async (req, res, next) => {
       const version = 'v1.0';
 
       const result = await query(
-        `INSERT INTO esign_documents (supplier_id, document_title, document_url, agreement_version, agreement_content, signed_status)
-         VALUES (?, ?, ?, ?, ?, 'pending')`,
-        [supplier.id, title, '/agreements/supplier-master-agreement-v1.pdf', version, content]
+        `INSERT INTO esign_documents (supplier_id, document_title, document_url, signed_status)
+         VALUES (?, ?, ?, 'pending')`,
+        [supplier.id, title, '/agreements/supplier-master-agreement-v1.pdf']
       );
 
       agreement = {

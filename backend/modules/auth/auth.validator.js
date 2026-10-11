@@ -24,14 +24,15 @@ const customerLoginRules = [
 ];
 
 const supplierSignupRules = [
-  body('company_name').trim().notEmpty().withMessage('Company / Business name is required'),
-  body('first_name').optional().trim(),
-  body('last_name').optional().trim(),
+  body('account_type').isIn(['individual', 'corporate']).withMessage('Select Individual Person or Registered Corporate Entity.'),
+  body('company_name').optional({ nullable: true, checkFalsy: true }).trim(),
+  body('first_name').trim().notEmpty().withMessage('First name is required.'),
+  body('last_name').trim().notEmpty().withMessage('Last name is required.'),
   body('owner_name').optional().trim(),
   body('contact_person').optional().trim(),
-  body('email').isEmail().withMessage('Valid business email is required').normalizeEmail(),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-  body('phone').notEmpty().withMessage('Phone number is required for OTP verification'),
+  body('email').isEmail().withMessage('Enter a valid email address.').normalizeEmail(),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters.'),
+  body('phone').trim().notEmpty().withMessage('Mobile number is required.'),
   body('business_type').optional().trim(),
   body('website').optional().trim(),
   body('main_category').optional().trim(),

@@ -170,11 +170,97 @@ const sendOtpEmail = async ({ user, code, purpose = 'Verification' }) => {
   return sendEmail({ to: user.email, subject, html, text, userId: user.id });
 };
 
+/**
+ * Supplier registration received — sent to the applicant (pending approval).
+ */
+const sendSupplierApplicationReceivedEmail = async ({ user, reference, submittedAt, accountTypeLabel }) => {
+  const when = new Date(submittedAt).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+  const subject = 'Supplier Registration Submitted Successfully';
+  const text = [
+    `Dear ${user.first_name} ${user.last_name},`,
+    '',
+    'Your supplier registration has been submitted successfully.',
+    `Application Reference Number: ${reference}`,
+    `Submitted On: ${when}`,
+    `Account Type: ${accountTypeLabel}`,
+    'Status: Pending',
+    '',
+    'We will review your information and documents. You will receive another email once your account is approved or if more information is required.',
+    '',
+    `Thank you,`,
+    `${config.app.name}`
+  ].join('\n');
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="color: #1d4ed8; margin-top: 0;">Supplier Registration Submitted Successfully</h2>
+      <p>Dear <strong>${user.first_name} ${user.last_name}</strong>,</p>
+      <p>Your supplier registration has been submitted successfully and is waiting for review.</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        <tr><td style="padding: 8px 0; color: #64748b;">Application Reference Number</td><td style="padding: 8px 0; font-weight: 700;">${reference}</td></tr>
+        <tr><td style="padding: 8px 0; color: #64748b;">Submitted On</td><td style="padding: 8px 0; font-weight: 700;">${when}</td></tr>
+        <tr><td style="padding: 8px 0; color: #64748b;">Account Type</td><td style="padding: 8px 0; font-weight: 700;">${accountTypeLabel}</td></tr>
+        <tr><td style="padding: 8px 0; color: #64748b;">Status</td><td style="padding: 8px 0; font-weight: 700; color: #b45309;">Pending</td></tr>
+      </table>
+      <p>We will review your information and documents. You will receive another email once your account is approved or if more information is required.</p>
+      <p>Thank you,<br/>${config.app.name} Team</p>
+    </div>
+  `;
+  return sendEmail({ to: user.email, subject, html, text, userId: user.id });
+};
+
+/**
+ * Admin / super admin email when a supplier application is submitted.
+ */
+const sendAdminSupplierApplicationEmail = async ({ admin, application, reviewUrl }) => {
+  const accountTypeLabel = application.accountType === 'individual' ? 'Individual Person' : 'Registered Corporate Entity';
+  const subject = 'New Supplier Registration – Pending Verification';
+  const documents = (application.documents || []).map(d => d.document_name || d.document_type).join(', ') || 'None listed';
+  const categories = (application.mainCategoryNames || []).join(', ') || 'Not specified';
+  const subCategories = (application.subCategories || []).join(', ') || 'Not specified';
+  const text = [
+    'New Supplier Registration – Pending Verification',
+    `Supplier Name: ${application.supplierName}`,
+    `Account Type: ${accountTypeLabel}`,
+    `Email: ${application.email}`,
+    `Phone: ${application.phone || ''}`,
+    `Reference: ${application.reference}`,
+    `Main Category: ${categories}`,
+    `Sub-Categories: ${subCategories}`,
+    `Submitted Documents: ${documents}`,
+    'Verification Status: Pending',
+    `Review: ${reviewUrl}`
+  ].join('\n');
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 640px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="color: #1d4ed8; margin-top: 0;">New Supplier Registration – Pending Verification</h2>
+      <p>Dear Admin Team,</p>
+      <p>A new supplier registration has been submitted and is awaiting verification.</p>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="padding: 6px 0; color: #64748b;">Supplier Name</td><td style="padding: 6px 0;"><strong>${application.supplierName}</strong></td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Account Type</td><td style="padding: 6px 0;">${accountTypeLabel}</td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Email</td><td style="padding: 6px 0;">${application.email}</td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Phone</td><td style="padding: 6px 0;">${application.phone || '—'}</td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Registration Date</td><td style="padding: 6px 0;">${new Date(application.submittedAt || Date.now()).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Main Category</td><td style="padding: 6px 0;">${categories}</td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Sub-Categories</td><td style="padding: 6px 0;">${subCategories}</td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Submitted Documents</td><td style="padding: 6px 0;">${documents}</td></tr>
+        <tr><td style="padding: 6px 0; color: #64748b;">Verification Status</td><td style="padding: 6px 0; color: #b45309; font-weight: 700;">Pending</td></tr>
+      </table>
+      <p style="margin-top: 20px;"><a href="${reviewUrl}" style="background: #1d4ed8; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 700;">Review Supplier</a></p>
+    </div>
+  `;
+  return sendEmail({ to: admin.email, subject, html, text, userId: admin.id });
+};
+
 module.exports = {
   sendEmail,
   sendVerificationEmail,
   sendOtpEmail,
   sendPasswordResetEmail,
-  sendSupplierStatusEmail
+  sendSupplierStatusEmail,
+  sendSupplierApplicationReceivedEmail,
+  sendAdminSupplierApplicationEmail
 };
 

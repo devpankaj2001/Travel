@@ -86,6 +86,7 @@ const config = {
     apiKey: process.env.SMS_API_KEY || '',
     apiSecret: process.env.SMS_API_SECRET || '',
     senderId: process.env.SMS_SENDER_ID || '',
+    fromNumber: process.env.SMS_FROM_NUMBER || '',
     otpExpiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '10', 10),
     otpMaxAttempts: parseInt(process.env.OTP_MAX_ATTEMPTS || '5', 10)
   },

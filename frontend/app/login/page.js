@@ -17,7 +17,6 @@ import {
   Users,
   ShieldCheck,
   Zap,
-  CheckCircle2,
   Sparkles
 } from 'lucide-react';
 
@@ -497,27 +496,6 @@ export default function UnifiedLoginPage() {
             </button>
           </form>
 
-          {/* Multi-role Smart Redirection note */}
-          <div style={{
-            marginTop: '22px',
-            padding: '10px 14px',
-            borderRadius: '10px',
-            backgroundColor: '#F0FDFA',
-            border: '1px solid #B8EFE2',
-            fontSize: '11.5px',
-            color: '#0F766E',
-            lineHeight: 1.5,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <CheckCircle2 size={15} style={{ flexShrink: 0, color: '#0D9488' }} />
-            <span>
-              <strong>Smart Role Redirection:</strong> Supplier, Admin, Accountant, aur Customer apne respective dashboard par automatically redirect honge.
-            </span>
-          </div>
-
-
           {/* Footer Link matching Reference Image */}
           <div style={{
             marginTop: '26px',
@@ -527,7 +505,7 @@ export default function UnifiedLoginPage() {
           }}>
             <span>New Partner? </span>
             <Link
-              href="/supplier/signup"
+              href="/become-a-supplier"
               style={{
                 color: '#0D9488',
                 fontWeight: '800',

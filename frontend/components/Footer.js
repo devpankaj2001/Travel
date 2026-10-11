@@ -11,6 +11,7 @@ export default function Footer() {
     pathname.startsWith('/admin') ||
     pathname.startsWith('/customer') ||
     pathname.startsWith('/supplier') ||
+    pathname.startsWith('/become-a-supplier') ||
     pathname.startsWith('/listing') ||
     pathname.startsWith('/toursandattractions')
   ) {
@@ -45,7 +46,7 @@ export default function Footer() {
 
         <div style={{ display: 'flex', gap: '20px', fontSize: '13px' }}>
           <Link href="/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Customer Portal</Link>
-          <Link href="/supplier/signup" style={{ color: '#0D9488', textDecoration: 'none', fontWeight: '800' }}>Become a Supplier</Link>
+          <Link href="/become-a-supplier" style={{ color: '#0D9488', textDecoration: 'none', fontWeight: '800' }}>Become a Supplier</Link>
           <Link href="/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Supplier Portal</Link>
           <Link href="/login" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '600' }}>Admin Console</Link>
         </div>

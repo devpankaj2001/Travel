@@ -15,9 +15,37 @@ const app = express();
 
 const ensureDevSeed = async () => {
   try {
+    const requiredRoles = [
+      { name: 'Site Admin', slug: 'site_admin', description: 'Approvals, users, activities, bookings, coupons, configuration and reports' },
+      { name: 'Accountant / Finance', slug: 'accountant', description: 'Revenue, commission, refunds and settlement reporting/actions as permitted' },
+      { name: 'Supplier', slug: 'supplier', description: 'Company/KYC, activities, packages, pricing, slots, inventory and bookings' },
+      { name: 'Customer', slug: 'customer', description: 'Search, filter, view, book, pay, view trips, cancel eligible bookings, review completed bookings' }
+    ];
+    for (const role of requiredRoles) {
+      await query(
+        `INSERT INTO roles (name, slug, description) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description)`,
+        [role.name, role.slug, role.description]
+      );
+    }
+
     const roles = await query('SELECT id, slug FROM roles');
     const roleMap = {};
     roles.forEach(r => { roleMap[r.slug] = r.id; });
+
+    if (roleMap.site_admin) {
+      const existingAdmin = await query('SELECT id FROM users WHERE email = ?', [config.seed.adminEmail]);
+      if (existingAdmin.length === 0) {
+        const adminSalt = await bcrypt.genSalt(10);
+        const adminHash = await bcrypt.hash(config.seed.adminPassword, adminSalt);
+        await query(
+          `INSERT INTO users (role_id, first_name, last_name, email, password_hash, account_type, customer_segment, status, email_verified_at)
+           VALUES (?, ?, ?, ?, ?, 'individual', 'retail', 'active', NOW())`,
+          [roleMap.site_admin, config.seed.adminFirstName, config.seed.adminLastName, config.seed.adminEmail, adminHash]
+        );
+        console.log(`[Dev Seed] Site admin ready: ${config.seed.adminEmail}`);
+      }
+    }
 
     if (roleMap['supplier']) {
       const existingSupplier = await query("SELECT id FROM users WHERE email = 'supplier@demo.com'");

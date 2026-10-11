@@ -30,7 +30,7 @@ export default function HomePage() {
 
   const openAuth = (targetRole, targetMode) => {
     if (targetRole === 'supplier' && targetMode === 'signup') {
-      router.push('/supplier/signup');
+      router.push('/become-a-supplier');
       return;
     }
     if (targetMode === 'signin') {
@@ -110,8 +110,8 @@ export default function HomePage() {
 
         {/* 8. SUPPLIER & TRAVEL PARTNER PROMOTIONS (Host With Travel & Grow Your Business) */}
         <PartnerPromos
-          onBecomeSupplier={() => router.push('/supplier/signup')}
-          onBecomePartner={() => router.push('/supplier/signup')}
+          onBecomeSupplier={() => router.push('/become-a-supplier')}
+          onBecomePartner={() => router.push('/become-a-supplier')}
         />
 
         {/* 9. VIP MOBILE APP SHOWCASE */}

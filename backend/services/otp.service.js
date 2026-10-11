@@ -233,26 +233,83 @@ const verifyOtp = async ({ email = null, phone = null, code, purpose = 'supplier
   };
 };
 
+const smsText = (code) => `Your ${config.app.name} verification code is ${code}. It is valid for ${config.sms.otpExpiryMinutes} minutes.`;
+
+const sendSms = async ({ phone, code, purpose }) => {
+  const { provider, senderId, apiKey, apiSecret, fromNumber } = config.sms;
+  const to = String(phone || '').trim();
+  if (!to) return { sent: false };
+
+  if (!apiKey || provider === 'mock') {
+    console.log(`\n================== [SMS OTP WAITING FOR CONFIG] ==================`);
+    console.log(`Set SMS_PROVIDER to twilio or msg91 and add SMS_API_KEY to send texts.`);
+    console.log(`Phone: ${to} | Purpose: ${purpose} | Expires in ${config.sms.otpExpiryMinutes} minutes`);
+    if (!config.app.isProduction) {
+      console.log(`Verification Code: [ ${code} ]`);
+    }
+    console.log(`==================================================================\n`);
+    return { sent: false, logged: true };
+  }
+
+  const message = smsText(code);
+  try {
+    if (provider === 'twilio') {
+      const from = fromNumber || senderId;
+      if (!apiSecret || !from) {
+        console.warn('[SMS] Twilio needs SMS_API_SECRET and SMS_FROM_NUMBER.');
+        return { sent: false };
+      }
+      const destination = to.startsWith('+') ? to : `+${to.replace(/\D/g, '')}`;
+      const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(apiKey)}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString('base64')}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({ To: destination, From: from, Body: message })
+      });
+      if (!response.ok) {
+        const detail = await response.text();
+        console.error('[SMS Twilio]', response.status, detail.slice(0, 240));
+        return { sent: false };
+      }
+      console.log(`[SMS Sent via Twilio] To: ${destination}`);
+      return { sent: true };
+    }
+
+    if (provider === 'msg91') {
+      const mobiles = to.replace(/^\+/, '').replace(/\D/g, '');
+      const url = new URL('https://api.msg91.com/api/sendhttp.php');
+      url.searchParams.set('authkey', apiKey);
+      url.searchParams.set('mobiles', mobiles);
+      url.searchParams.set('message', message);
+      url.searchParams.set('sender', (senderId || 'BOOKIN').slice(0, 6));
+      url.searchParams.set('route', '4');
+      url.searchParams.set('country', '0');
+      const response = await fetch(url);
+      const detail = await response.text();
+      if (!response.ok || /error|invalid/i.test(detail)) {
+        console.error('[SMS MSG91]', response.status, detail.slice(0, 240));
+        return { sent: false };
+      }
+      console.log(`[SMS Sent via MSG91] To: ${mobiles}`);
+      return { sent: true };
+    }
+
+    console.warn(`[SMS] SMS_API_KEY is set, but SMS_PROVIDER "${provider}" is not twilio or msg91.`);
+    return { sent: false };
+  } catch (err) {
+    console.error('[SMS Error]', err.message);
+    return { sent: false };
+  }
+};
+
 /**
  * Dispatch the same OTP to both Phone (SMS) and Email channels
  */
 const sendOtpMessage = async ({ phone, email, code, purpose, user = null }) => {
-  const { provider, senderId, apiKey, apiSecret } = config.sms;
-
-  // 1. Dispatch SMS to phone (if provided)
   if (phone) {
-    if (provider === 'mock' || !apiKey) {
-      console.log(`\n================== [SMS OTP DISPATCH (PROVIDER: ${provider.toUpperCase()})] ==================`);
-      console.log(`Sender ID: ${senderId}`);
-      console.log(`Phone: ${phone}`);
-      console.log(`Purpose: ${purpose}`);
-      console.log(`Verification Code: [ ${code} ] (Expires in ${config.sms.otpExpiryMinutes} minutes)`);
-      console.log(`=========================================================================\n`);
-    } else if (provider === 'twilio') {
-      // Live Twilio SMS
-    } else if (provider === 'msg91') {
-      // Live Msg91 SMS
-    }
+    await sendSms({ phone, code, purpose });
   }
 
   // 2. Dispatch Email with the EXACT SAME OTP (if email provided)
@@ -261,7 +318,7 @@ const sendOtpMessage = async ({ phone, email, code, purpose, user = null }) => {
       await emailService.sendOtpEmail({
         user: user || { first_name: 'Valued User', email },
         code,
-        purpose: purpose === 'supplier_verification' ? 'Supplier' : (purpose === 'customer_verification' ? 'Customer' : 'Account')
+        purpose: String(purpose).includes('supplier') ? 'Supplier' : (String(purpose).includes('customer') ? 'Customer' : 'Account')
       });
     } catch (emailErr) {
       console.error('[Email OTP Error]:', emailErr.message);

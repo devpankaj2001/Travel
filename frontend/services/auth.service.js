@@ -53,7 +53,13 @@ export const authService = {
   },
 
   async supplierVerifyOtp(data) {
-    return apiRequest('/auth/supplier/verify-otp', { method: 'POST', body: data });
+    const res = await apiRequest('/auth/supplier/verify-otp', { method: 'POST', body: data });
+    if (res.success && res.data?.tokens?.accessToken) {
+      localStorage.setItem('token', res.data.tokens.accessToken);
+      localStorage.setItem('refreshToken', res.data.tokens.refreshToken);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+    }
+    return res;
   },
 
   async supplierResendOtp(data) {
@@ -279,6 +285,14 @@ export const authService = {
   async getAuditLogs(params = {}) {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/admin/audit-logs${query ? `?${query}` : ''}`);
+  },
+
+  async getNotifications() {
+    return apiRequest('/notifications');
+  },
+
+  async markNotificationRead(id) {
+    return apiRequest(`/notifications/${id}/read`, { method: 'PUT' });
   },
 
   // -----------------------------------------------------------

@@ -284,7 +284,27 @@ const runSupplierModuleMigration = async () => {
       }
     }
 
-    // Seed Add-on Services table as well
+    await addColIfNotExists('suppliers', 'state VARCHAR(100) NULL');
+    await addColIfNotExists('suppliers', 'postal_code VARCHAR(20) NULL');
+    await addColIfNotExists('suppliers', 'contact_address TEXT NULL');
+    await addColIfNotExists('suppliers', 'brand_name VARCHAR(191) NULL');
+    await addColIfNotExists('suppliers', 'owner_name VARCHAR(191) NULL');
+    await addColIfNotExists('suppliers', 'pan_number VARCHAR(30) NULL');
+    await addColIfNotExists('suppliers', 'identity_type VARCHAR(50) NULL');
+    await addColIfNotExists('suppliers', 'identity_number VARCHAR(100) NULL');
+    await addColIfNotExists('suppliers', 'application_reference VARCHAR(32) NULL');
+    await addColIfNotExists('suppliers', 'add_ons JSON NULL');
+    await addColIfNotExists('suppliers', 'terms_accepted_at TIMESTAMP NULL DEFAULT NULL');
+
+    try {
+      await query('CREATE UNIQUE INDEX uq_suppliers_application_reference ON suppliers (application_reference)');
+    } catch (err) {
+      if (!String(err.message).includes('Duplicate') && !String(err.message).includes('exists')) {
+        console.warn('[Migration Notice] application_reference index:', err.message);
+      }
+    }
+
+    // Seed Add-on Services table as well. "Other" is a registration input, not a catalogue row.
     const addons = ['Lounge Access', 'SIM Cards & eSIMs', 'Vouchers'];
     for (let i = 0; i < addons.length; i++) {
       const name = addons[i];
@@ -297,6 +317,108 @@ const runSupplierModuleMigration = async () => {
       );
     }
 
+    await query(`
+      CREATE TABLE IF NOT EXISTS predefined_services (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        main_category_id INT UNSIGNED NOT NULL,
+        name VARCHAR(191) NOT NULL,
+        slug VARCHAR(191) NOT NULL,
+        is_active BOOLEAN DEFAULT TRUE,
+        display_order SMALLINT UNSIGNED DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (main_category_id) REFERENCES main_categories(id) ON DELETE CASCADE,
+        UNIQUE KEY uq_predefined_service (main_category_id, slug),
+        INDEX idx_predefined_service_main (main_category_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS supplier_addon_selections (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        supplier_id INT UNSIGNED NOT NULL,
+        add_on_service_id INT UNSIGNED NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_supplier_addon (supplier_id, add_on_service_id),
+        FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
+        FOREIGN KEY (add_on_service_id) REFERENCES add_on_services(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS supplier_custom_addons (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        supplier_id INT UNSIGNED NOT NULL,
+        name VARCHAR(191) NOT NULL,
+        status ENUM('pending_review', 'approved', 'rejected') DEFAULT 'pending_review',
+        admin_notes TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
+        INDEX idx_custom_addon_supplier (supplier_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    const serviceCatalog = {
+      attractions: [
+        'Attraction Tickets',
+        'Theme Park Tickets',
+        'Museum Entry Tickets',
+        'Monument and Palace Tickets',
+        'Zoo and Aquarium Tickets'
+      ],
+      'tours-activity': [
+        'Guided City Tours',
+        'Day Trips and Excursions',
+        'Adventure Tours',
+        'Guided Trekking',
+        'Camping Packages',
+        'Wildlife Safari',
+        'Honeymoon Packages',
+        'Family Tour Packages'
+      ],
+      transportation: [
+        'Airport Pickup and Drop',
+        'Private Transfers',
+        'Shared Transfers',
+        'Hotel Transfers',
+        'Car Rentals',
+        'Chauffeur Services',
+        'Night Transfers',
+        'Corporate Transportation'
+      ],
+      experiences: [
+        'Food Tasting Experiences',
+        'Cooking Classes',
+        'Cultural Shows',
+        'Local Workshops',
+        'Water Sports',
+        'Wellness Experiences',
+        'Private Cooking Classes',
+        'Local Cultural Experiences'
+      ],
+      'add-on-services': [
+        'Airport Lounge Access',
+        'SIM Cards and eSIMs',
+        'Travel Vouchers',
+        'Attraction Passes'
+      ]
+    };
+
+    for (const [mainSlug, names] of Object.entries(serviceCatalog)) {
+      const mainRows = await query('SELECT id FROM main_categories WHERE slug = ?', [mainSlug]);
+      if (!mainRows.length) continue;
+      const mainId = mainRows[0].id;
+      for (let i = 0; i < names.length; i++) {
+        const serviceName = names[i];
+        const serviceSlug = serviceName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        await query(
+          `INSERT INTO predefined_services (main_category_id, name, slug, display_order, is_active)
+           VALUES (?, ?, ?, ?, TRUE)
+           ON DUPLICATE KEY UPDATE name = VALUES(name), display_order = VALUES(display_order), is_active = TRUE`,
+          [mainId, serviceName, serviceSlug, i + 1]
+        );
+      }
+    }
+
     console.log('[Migration] Supplier Module Schema & 5 Main Categories + Subcategories migration completed successfully!');
   } catch (error) {
     console.error('[Migration Error]:', error);
@@ -306,8 +428,14 @@ const runSupplierModuleMigration = async () => {
 
 if (require.main === module) {
   runSupplierModuleMigration()
-    .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    .then(async () => {
+      await pool.end();
+      process.exit(0);
+    })
+    .catch(async () => {
+      await pool.end().catch(() => {});
+      process.exit(1);
+    });
 }
 
 module.exports = { runSupplierModuleMigration };

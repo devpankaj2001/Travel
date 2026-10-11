@@ -53,6 +53,18 @@ router.get('/taxonomy', async (req, res, next) => {
        ORDER BY display_order ASC`
     );
 
+    let serviceRows = [];
+    try {
+      serviceRows = await query(
+        `SELECT id, main_category_id, name, slug, display_order
+         FROM predefined_services
+         WHERE is_active = 1
+         ORDER BY display_order ASC`
+      );
+    } catch (err) {
+      serviceRows = [];
+    }
+
     const taxonomy = mainCats.map(mc => ({
       ...mc,
       subcategories: subCats
@@ -62,6 +74,13 @@ router.get('/taxonomy', async (req, res, next) => {
           name: sc.name,
           slug: sc.slug,
           is_other: Boolean(sc.is_other)
+        })),
+      services: serviceRows
+        .filter(service => service.main_category_id === mc.id)
+        .map(service => ({
+          id: service.id,
+          name: service.name,
+          slug: service.slug
         }))
     }));
 
