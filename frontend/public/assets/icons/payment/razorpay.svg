@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 24" class="h-6 w-auto fill-white">
+  <path d="M9.8 1.2L0 22.8h5.2l6.2-13.6h5.8c4.2 0 7.2-2.8 7.2-6.5C24.4 1.2 21.2 0 17 0H9.8v1.2zm5.4 3.8h1.8c1.6 0 2.7.9 2.7 2.3 0 1.5-1.1 2.4-2.7 2.4h-1.8V5z" fill="#0c2340"/>
+  <polygon points="12.5,9.8 18.2,22.8 24.2,22.8 17.5,9.8" fill="#528ff0"/>
+  <text x="32" y="17" font-family="'Manrope', sans-serif" font-weight="800" font-size="14" fill="#ffffff" letter-spacing="-0.5">Razorpay</text>
+</svg>

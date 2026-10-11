@@ -1,0 +1,3418 @@
+<header class="absolute top-0 left-0 right-0 z-50 w-full transition-all duration-300">
+    <div class="site-container">
+      <div class="flex items-center justify-between h-20 md:h-24">
+        <!-- Brand Logo Placeholder -->
+        <a href="index.html"
+          class="flex items-center gap-2 text-white font-extrabold text-2xl md:text-3xl tracking-wider focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-md"
+          aria-label="LOGO Home">
+          <span>LOGO</span>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden lg:flex items-center gap-7 text-sm font-semibold text-white/90" aria-label="Main Navigation">
+          <a href="index.html" class="text-white hover:text-[#D6F5EE] transition-colors py-1">Home</a>
+          <a href="#" data-route="activities" class="hover:text-[#D6F5EE] transition-colors py-1">Activities</a>
+          <a href="#" data-route="destinations" class="hover:text-[#D6F5EE] transition-colors py-1">Destinations</a>
+          <a href="#" data-route="experiences" class="hover:text-[#D6F5EE] transition-colors py-1">Experiences</a>
+          <a href="#" data-route="aiTripPlanner" class="hover:text-[#D6F5EE] transition-colors py-1">AI Trip Planner</a>
+          <a href="#" data-route="offers" class="hover:text-[#D6F5EE] transition-colors py-1">Offers</a>
+        </nav>
+
+        <!-- Right Action Buttons: Partners & Login / Sign Up -->
+        <div class="hidden lg:flex items-center gap-3">
+          <!-- Partners Dropdown Menu as a Button -->
+          <div class="relative" id="partners-dropdown-container">
+            <button type="button" id="partners-menu-btn" aria-haspopup="true" aria-expanded="false"
+              aria-controls="partners-menu"
+              class="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold text-white border border-white/80 rounded-lg hover:bg-white hover:text-[#333F70] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer">
+              <span>Partners</span>
+              <svg class="w-4 h-4 chevron-icon transition-transform duration-200" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div id="partners-menu" role="menu" aria-labelledby="partners-menu-btn"
+              class="hidden absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2.5 border border-slate-100 text-slate-800 z-50">
+              <a href="#" data-route="becomeSupplier" role="menuitem"
+                class="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors">Become a
+                Supplier</a>
+              <a href="#" data-route="becomeTravelPartner" role="menuitem"
+                class="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors">Become a
+                Travel Partner</a>
+              <a href="#" data-route="aboutUs" role="menuitem"
+                class="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors">About
+                Us</a>
+              <a href="#" data-route="contactUs" role="menuitem"
+                class="block px-4 py-2.5 text-sm hover:bg-[#D6F5EE]/40 hover:text-[#333F70] transition-colors">Contact
+                Us</a>
+            </div>
+          </div>
+
+          <!-- Login / Sign Up Button -->
+          <a href="#" data-route="loginSignUp"
+            class="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white border border-white/80 rounded-lg hover:bg-white hover:text-[#333F70] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            Login / Sign Up
+          </a>
+        </div>
+
+        <!-- Mobile Menu Toggle Button -->
+        <div class="flex lg:hidden items-center">
+          <button type="button" id="mobile-menu-btn" aria-expanded="false" aria-label="Open mobile navigation menu"
+            class="p-2 text-white hover:text-[#D6F5EE] focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-lg">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer & Backdrop -->
+    <div id="mobile-menu-backdrop" class="hidden fixed inset-0 bg-black/60 z-50 transition-opacity"></div>
+    <div id="mobile-menu"
+      class="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-[#333F70] text-white z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between overflow-y-auto">
+      <div>
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+          <span class="font-extrabold text-2xl tracking-wider">LOGO</span>
+          <button type="button" id="mobile-menu-close-btn" aria-label="Close mobile menu"
+            class="p-2 text-white/80 hover:text-white rounded-lg focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <nav class="flex flex-col gap-4 text-base font-semibold" aria-label="Mobile Navigation">
+          <a href="index.html" class="hover:text-[#D6F5EE] transition-colors py-1.5">Home</a>
+          <a href="#" data-route="activities" class="hover:text-[#D6F5EE] transition-colors py-1.5">Activities</a>
+          <a href="#" data-route="destinations" class="hover:text-[#D6F5EE] transition-colors py-1.5">Destinations</a>
+          <a href="#" data-route="experiences" class="hover:text-[#D6F5EE] transition-colors py-1.5">Experiences</a>
+          <a href="#" data-route="aiTripPlanner" class="hover:text-[#D6F5EE] transition-colors py-1.5">AI Trip
+            Planner</a>
+          <a href="#" data-route="offers" class="hover:text-[#D6F5EE] transition-colors py-1.5">Offers</a>
+
+          <!-- Mobile Partners Submenu Accordion -->
+          <div class="pt-2 border-t border-white/10">
+            <button type="button" id="mobile-partners-btn"
+              class="w-full flex items-center justify-between hover:text-[#D6F5EE] py-2 text-left">
+              <span>Partners</span>
+              <svg class="w-4 h-4 chevron-icon transition-transform duration-200" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div id="mobile-partners-submenu" class="hidden pl-4 flex flex-col gap-2.5 pt-2 text-sm text-white/80">
+              <a href="#" data-route="becomeSupplier" class="hover:text-[#D6F5EE] py-1">Become a Supplier</a>
+              <a href="#" data-route="becomeTravelPartner" class="hover:text-[#D6F5EE] py-1">Become a Travel Partner</a>
+              <a href="#" data-route="aboutUs" class="hover:text-[#D6F5EE] py-1">About Us</a>
+              <a href="#" data-route="contactUs" class="hover:text-[#D6F5EE] py-1">Contact Us</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <div class="pt-6 border-t border-white/10">
+        <a href="#" data-route="loginSignUp"
+          class="w-full flex items-center justify-center px-5 py-3 text-center text-sm font-bold bg-[#D6F5EE] text-[#333F70] rounded-xl hover:bg-white transition-colors">
+          Login / Sign Up
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow">
+    <!-- ==================== HERO SECTION ==================== -->
+    <section id="hero-section"
+      class="relative w-full min-h-[760px] sm:min-h-[820px] md:min-h-[850px] lg:min-h-[850px] xl:min-h-[850px] flex items-center justify-center overflow-hidden bg-white"
+      aria-label="Hero Experience Showcase">
+      <!-- Hero Background Video with Fallback Poster -->
+      <div class="absolute inset-0 w-full h-full overflow-hidden">
+        <video id="hero-bg-video" autoplay muted loop playsinline webkit-playsinline="true" x5-playsinline="true" x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto" disablepictureinpicture disableremoteplayback poster="assets/images/hero_bg.jpg"
+          class="w-full h-full object-cover object-center pointer-events-none">
+          <source src="assets/images/Hero_video.mp4" type="video/mp4">
+        </video>
+        <!-- Dark Overlay for Contrast & Text Legibility -->
+        <div class="absolute inset-0 bg-black/30 pointer-events-none"></div>
+        <div class="absolute inset-x-0 top-0 h-[60%] bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
+        </div>
+      </div>
+
+      <!-- Centered Hero Text & CTAs -->
+      <div class="site-container relative z-20 text-center text-white pt-24 sm:pt-28 md:pt-32 pb-24 sm:pb-28 md:pb-32 hero-content-wrap">
+        <h1
+          class="hero-main-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold uppercase tracking-wide max-w-5xl mx-auto drop-shadow-md leading-tight">
+          Discover and Book Amazing Experiences Worldwide
+        </h1>
+        <p
+          class="hero-sub-primary mt-4 sm:mt-5 text-base sm:text-xl md:text-2xl font-medium text-white/95 max-w-3xl mx-auto drop-shadow-sm">
+          Find Activities, Tours and Adventures for Every Journey
+        </p>
+        <p class="hero-sub-secondary mt-2 text-xs sm:text-sm md:text-base font-normal text-white/80 max-w-2xl mx-auto">
+          Search by Destination, Activity or Experience
+        </p>
+
+        <!-- Hero CTAs -->
+        <div class="hero-ctas-group mt-8 sm:mt-9 flex flex-wrap items-center justify-center gap-4">
+          <a href="#" data-route="aiTripPlanner"
+            class="hero-btn-ai inline-flex items-center justify-center px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold bg-white/15 backdrop-blur-md border border-white/80 text-white rounded-xl hover:bg-white hover:text-[#333F70] shadow-lg transition-all duration-200">
+            Plan Your Trip with AI
+          </a>
+          <a href="#" data-route="activities"
+            class="hero-btn-explore inline-flex items-center justify-center px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold bg-black/30 backdrop-blur-md border border-white/40 text-white rounded-xl hover:bg-white/20 shadow-md transition-all duration-200">
+            Explore Now
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom Brush Border Image (2nd img) -->
+      <div class="brush-edge-bottom">
+        <img src="assets/images/hero_brush_bottom.png" alt=""
+          class="w-full h-16 sm:h-20 md:h-24 lg:h-28 object-fill select-none" aria-hidden="true">
+      </div>
+    </section>
+
+    <!-- ==================== FLOATING SEARCH PANEL ==================== -->
+    <div class="site-container relative z-30 hero-floating-panel">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-100/90 p-4 sm:p-6 lg:p-7">
+        <form id="hero-search-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end"
+          aria-label="Activity Search Panel">
+
+          <!-- Destination Field -->
+          <div class="lg:col-span-3">
+            <label for="search-destination"
+              class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Where Are You
+              Going?</label>
+            <div class="relative flex items-center">
+              <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                <svg class="w-5 h-5 text-[#333F70]/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </span>
+              <input type="text" id="search-destination" placeholder="Search destination..."
+                class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-[#333F70] outline-none transition-colors">
+            </div>
+          </div>
+
+          <!-- Activity Field -->
+          <div class="lg:col-span-3">
+            <label for="search-activity"
+              class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Select Activity</label>
+            <div class="relative flex items-center">
+              <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                <svg class="w-5 h-5 text-[#333F70]/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </span>
+              <select id="search-activity"
+                class="w-full pl-11 pr-8 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-[#333F70] outline-none transition-colors appearance-none cursor-pointer">
+                <option value="" selected>Select activity</option>
+                <option value="adventure">Adventure Activities</option>
+                <option value="desert">Desert Experiences</option>
+                <option value="wildlife">Wildlife & Nature</option>
+                <option value="water">Water Sports</option>
+                <option value="air">Air Adventures</option>
+                <option value="sightseeing">Sightseeing Tours</option>
+                <option value="cultural">Cultural Experiences</option>
+                <option value="food">Food & Dining Experiences</option>
+                <option value="romantic">Romantic Experiences</option>
+                <option value="family">Family Activities</option>
+                <option value="kids">Kids Activities</option>
+                <option value="wellness">Wellness Experiences</option>
+                <option value="nightlife">Nightlife & Entertainment</option>
+                <option value="spiritual">Religious & Spiritual Tours</option>
+                <option value="educational">Educational Experiences</option>
+                <option value="corporate">Corporate Group Activities</option>
+              </select>
+              <span class="absolute right-3.5 text-slate-400 pointer-events-none">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- Date Picker Field -->
+          <div class="lg:col-span-2">
+            <label for="search-date"
+              class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Choose Date</label>
+            <div class="relative flex items-center">
+              <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                <svg class="w-5 h-5 text-[#333F70]/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </span>
+              <input type="date" id="search-date"
+                class="w-full pl-11 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-[#333F70] outline-none transition-colors cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Guests Counter Field -->
+          <div class="lg:col-span-2">
+            <span class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Number of Guests</span>
+            <input type="hidden" id="search-guests" value="1">
+            <div class="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+              <button type="button" id="guest-minus" aria-label="Decrease guest count"
+                class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center transition-colors">
+                -
+              </button>
+              <span id="guest-count" class="font-bold text-slate-800 text-sm">1</span>
+              <button type="button" id="guest-plus" aria-label="Increase guest count"
+                class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center transition-colors">
+                +
+              </button>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="sm:col-span-2 lg:col-span-2">
+            <button type="submit"
+              class="w-full py-3.5 px-4 bg-[#333F70] hover:bg-[#273157] active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <span>Search Experiences</span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 6: EXPLORE EXPERIENCES BY CATEGORY ==================== -->
+    <section class="category-slider-section" aria-labelledby="category-heading">
+      <div class="site-container">
+
+        <!-- Section Header: Left Heading + Right View All Button -->
+        <div class="flex flex-col items-start sm:flex-row sm:items-end justify-between gap-4 mb-8 md:mb-10">
+          <div>
+            <h2 id="category-heading"
+              class="text-2xl md:text-3xl font-extrabold text-[#333F70] text-left uppercase tracking-wide">
+              Explore Experiences by Category
+            </h2>
+            <p class="mt-1 text-sm text-slate-500 font-medium text-left">
+              Discover handpicked activities tailored to your passions and travel style
+            </p>
+          </div>
+
+          <a href="#" data-route="categories"
+            class="inline-flex items-center gap-2 self-start sm:self-auto px-5 py-2.5 text-sm font-bold text-[#333F70] bg-[#D6F5EE]/40 hover:bg-[#333F70] hover:text-white border border-[#333F70]/20 rounded-xl transition-all duration-200 group/btn shrink-0">
+            <span>View All</span>
+            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3">
+              </path>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Slider Container with Left/Right Blur & Fade Overlays -->
+        <div class="relative w-full overflow-hidden flex flex-col gap-3 sm:gap-3.5">
+          <!-- Left Blur & Fade Edge Overlay (covers both rows) -->
+          <div class="category-slider-fade-left" aria-hidden="true"></div>
+
+          <!-- Row 1: Right-to-Left (←) (6 Categories) -->
+          <div class="category-marquee-row category-marquee-left" id="categories-carousel-1"
+            aria-label="Experience Categories Row 1">
+            <!-- Track A -->
+            <div class="category-marquee-track">
+              <!-- 1. Adventure Activities -->
+              <a href="#" data-route="categoryDetail" data-param="adventure-activities"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_adventure.jpg" alt="Adventure Activities"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Adventure Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 2. Desert Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="desert-experiences" class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_desert.jpg" alt="Desert Experiences"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Desert Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 3. Wildlife & Nature -->
+              <a href="#" data-route="categoryDetail" data-param="wildlife-nature" class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_wildlife.jpg" alt="Wildlife & Nature"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Wildlife & Nature</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 4. Water Sports -->
+              <a href="#" data-route="categoryDetail" data-param="water-sports" class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_water_sports.jpg" alt="Water Sports"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Water Sports</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 5. Air Adventures -->
+              <a href="#" data-route="categoryDetail" data-param="air-adventures" class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_air.jpg" alt="Air Adventures"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Air Adventures</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 6. Sightseeing Tours -->
+              <a href="#" data-route="categoryDetail" data-param="sightseeing-tours" class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_sightseeing.jpg" alt="Sightseeing Tours"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Sightseeing Tours</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+            </div>
+
+            <!-- Track B (Seamless duplicate for infinite smooth loop) -->
+            <div class="category-marquee-track" aria-hidden="true">
+              <!-- 1. Adventure Activities -->
+              <a href="#" data-route="categoryDetail" data-param="adventure-activities" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_adventure.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Adventure Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 2. Desert Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="desert-experiences" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_desert.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Desert Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 3. Wildlife & Nature -->
+              <a href="#" data-route="categoryDetail" data-param="wildlife-nature" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_wildlife.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Wildlife & Nature</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 4. Water Sports -->
+              <a href="#" data-route="categoryDetail" data-param="water-sports" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_water_sports.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Water Sports</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 5. Air Adventures -->
+              <a href="#" data-route="categoryDetail" data-param="air-adventures" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_air.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Air Adventures</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 6. Sightseeing Tours -->
+              <a href="#" data-route="categoryDetail" data-param="sightseeing-tours" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_sightseeing.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Sightseeing Tours</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Row 2: Left-to-Right (→) (5 Categories) -->
+          <div class="category-marquee-row category-marquee-right" id="categories-carousel-2"
+            aria-label="Experience Categories Row 2">
+            <!-- Track A -->
+            <div class="category-marquee-track">
+              <!-- 7. Cultural Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="cultural-experiences"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_cultural.jpg" alt="Cultural Experiences"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Cultural Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 8. Food & Dining Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="food-dining-experiences"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_food.jpg" alt="Food & Dining Experiences"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Food & Dining Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 9. Romantic Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="romantic-experiences"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_romantic.jpg" alt="Romantic Experiences"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Romantic Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 10. Family Activities -->
+              <a href="#" data-route="categoryDetail" data-param="family-activities" class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_family.jpg" alt="Family Activities"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Family Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 11. Kids Activities -->
+              <a href="#" data-route="categoryDetail" data-param="kids-activities" class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_kids.jpg" alt="Kids Activities"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Kids Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+            </div>
+
+            <!-- Track B (Seamless duplicate for infinite smooth loop) -->
+            <div class="category-marquee-track" aria-hidden="true">
+              <!-- 7. Cultural Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="cultural-experiences" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_cultural.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Cultural Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 8. Food & Dining Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="food-dining-experiences" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_food.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Food & Dining Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 9. Romantic Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="romantic-experiences" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_romantic.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Romantic Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 10. Family Activities -->
+              <a href="#" data-route="categoryDetail" data-param="family-activities" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_family.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Family Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 11. Kids Activities -->
+              <a href="#" data-route="categoryDetail" data-param="kids-activities" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_kids.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Kids Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Row 3: Right-to-Left (←) (5 Categories) -->
+          <div class="category-marquee-row category-marquee-left" id="categories-carousel-3"
+            aria-label="Experience Categories Row 3">
+            <!-- Track A -->
+            <div class="category-marquee-track">
+              <!-- 12. Wellness Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="wellness-experiences"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_wellness.jpg" alt="Wellness Experiences"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Wellness Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 13. Nightlife & Entertainment -->
+              <a href="#" data-route="categoryDetail" data-param="nightlife-entertainment"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_nightlife.jpg" alt="Nightlife & Entertainment"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Nightlife & Entertainment</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 14. Religious & Spiritual Tours -->
+              <a href="#" data-route="categoryDetail" data-param="religious-spiritual-tours"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_spiritual.jpg" alt="Religious & Spiritual Tours"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Religious & Spiritual Tours</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 15. Educational Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="educational-experiences"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_educational.jpg" alt="Educational Experiences"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Educational Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 16. Corporate Group Activities -->
+              <a href="#" data-route="categoryDetail" data-param="corporate-group-activities"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_corporate.jpg" alt="Corporate Group Activities"
+                    class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <span class="category-pill-text">Corporate Group Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+            </div>
+
+            <!-- Track B (Seamless duplicate for infinite smooth loop) -->
+            <div class="category-marquee-track" aria-hidden="true">
+              <!-- 12. Wellness Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="wellness-experiences" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_wellness.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Wellness Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 13. Nightlife & Entertainment -->
+              <a href="#" data-route="categoryDetail" data-param="nightlife-entertainment" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_nightlife.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Nightlife & Entertainment</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 14. Religious & Spiritual Tours -->
+              <a href="#" data-route="categoryDetail" data-param="religious-spiritual-tours" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_spiritual.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Religious & Spiritual Tours</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 15. Educational Experiences -->
+              <a href="#" data-route="categoryDetail" data-param="educational-experiences" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_educational.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Educational Experiences</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+
+              <!-- 16. Corporate Group Activities -->
+              <a href="#" data-route="categoryDetail" data-param="corporate-group-activities" tabindex="-1"
+                class="category-pill-item group">
+                <div class="category-pill-icon">
+                  <img src="assets/images/categories/cat_corporate.jpg" alt="" class="w-full h-full object-cover"
+                    loading="lazy">
+                </div>
+                <span class="category-pill-text">Corporate Group Activities</span>
+                <svg class="category-pill-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 12h14m-6-6l6 6-6 6">
+                  </path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Right Blur & Fade Edge Overlay -->
+          <div class="category-slider-fade-right" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 7: EXPLORE POPULAR DESTINATIONS ==================== -->
+    <section class="py-8 md:py-12" aria-labelledby="dest-heading">
+      <div class="site-container">
+        <!-- Section Header: Left Heading + Right View All Button -->
+        <div class="flex flex-col items-start sm:flex-row sm:items-end justify-between gap-4 mb-8 md:mb-10">
+          <div>
+            <h2 id="dest-heading"
+              class="text-2xl md:text-3xl font-extrabold text-[#333F70] text-left uppercase tracking-wide">
+              Explore Popular Destinations
+            </h2>
+            <p class="mt-1 text-sm text-slate-500 font-medium text-left">
+              Discover top-rated destinations for your next journey
+            </p>
+          </div>
+
+          <a href="#" data-route="destinations"
+            class="inline-flex items-center gap-2 self-start sm:self-auto px-5 py-2.5 text-sm font-bold text-[#333F70] bg-[#D6F5EE]/40 hover:bg-[#333F70] hover:text-white border border-[#333F70]/20 rounded-xl transition-all duration-200 group/btn shrink-0">
+            <span>View All</span>
+            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3">
+              </path>
+            </svg>
+          </a>
+        </div>
+
+        <!-- 8 Fixed Destination Cards Grid (Bigger boxes, 4 cols on desktop) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
+
+          <!-- 1. Dubai -->
+          <a href="#" data-route="destinationDetail" data-param="dubai"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_dubai.jpg" alt="Dubai Burj Khalifa skyline"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Dubai</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+          <!-- 2. Goa -->
+          <a href="#" data-route="destinationDetail" data-param="goa"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_goa.jpg" alt="Goa tropical palm beach"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Goa</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+          <!-- 3. Jaipur -->
+          <a href="#" data-route="destinationDetail" data-param="jaipur"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_jaipur.jpg" alt="Jaipur Hawa Mahal palace"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Jaipur</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+          <!-- 4. Udaipur -->
+          <a href="#" data-route="destinationDetail" data-param="udaipur"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_udaipur.jpg" alt="Udaipur City Palace and lake"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Udaipur</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+          <!-- 5. Manali -->
+          <a href="#" data-route="destinationDetail" data-param="manali"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_manali.jpg" alt="Manali snowy mountain valleys"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Manali</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+          <!-- 6. Jaisalmer -->
+          <a href="#" data-route="destinationDetail" data-param="jaisalmer"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_jaisalmer.jpg" alt="Jaisalmer golden sand fort"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Jaisalmer</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+          <!-- 7. Rishikesh -->
+          <a href="#" data-route="destinationDetail" data-param="rishikesh"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_rishikesh.jpg" alt="Rishikesh holy river and Himalayan temples"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Rishikesh</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+          <!-- 8. Thailand -->
+          <a href="#" data-route="destinationDetail" data-param="thailand"
+            class="group relative h-60 sm:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md card-hover-effect block">
+            <img src="assets/images/dest_thailand.jpg" alt="Thailand emerald sea and longtail boats"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 z-10 text-white">
+              <h3 class="font-extrabold text-xl sm:text-2xl drop-shadow leading-tight">Thailand</h3>
+              <p class="flex items-center gap-1.5 text-xs font-semibold text-white/90 mt-1">
+                <span>Explore Tours</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </p>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 8: TRENDING EXPERIENCES ==================== -->
+    <section class="py-12 md:py-16 bg-white" aria-labelledby="trending-heading">
+      <div class="site-container">
+
+        <!-- Section Header: Left Heading with Coral Dash + Right Paragraph -->
+        <div class="trending-header-wrap">
+          <div class="trending-header-left">
+            <div class="trending-tag-row">
+              <span class="trending-tag-line"></span>
+              <span class="trending-tag-text">Popular Experiences</span>
+            </div>
+            <h2 id="trending-heading" class="trending-main-title">
+              Trending Experiences
+            </h2>
+          </div>
+
+          <p class="trending-header-desc">
+            Discover handpicked, unforgettable adventures curated by our travel experts. From thrilling desert dune
+            bashing to sunset camel safaris, quad biking, and coastal watersports.
+          </p>
+        </div>
+
+        <!-- Bento Grid: 2 Tall Cards (Left & Center) + 3 Stacked Cards (Right Column) -->
+        <div class="trending-bento-grid">
+
+          <!-- Card 1 (Left Tall Card): Desert Jeep Safari -->
+          <a href="#" data-route="activityDetail" data-param="desert-jeep-safari" class="trending-tall-card group">
+            <span class="trending-badge">Desert Safari</span>
+            <img src="assets/images/exp_jeep_safari.jpg" alt="Desert Jeep Safari" class="trending-card-img"
+              loading="lazy">
+            <div class="trending-card-overlay"></div>
+            <div class="trending-card-content">
+              <div class="trending-card-info">
+                <h3 class="trending-card-title">Desert Jeep Safari</h3>
+                <div class="trending-stars" aria-label="5 star rating">
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                </div>
+              </div>
+              <span class="trending-book-btn">
+                Book Now
+                <svg viewBox="0 0 20 20" fill="currentColor" class="trending-btn-icon">
+                  <path fill-rule="evenodd"
+                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                    clip-rule="evenodd"></path>
+                </svg>
+              </span>
+            </div>
+          </a>
+
+          <!-- Card 2 (Center Tall Card): Camel Safari at Sunset -->
+          <a href="#" data-route="activityDetail" data-param="camel-safari-sunset" class="trending-tall-card group">
+            <span class="trending-badge">Sunset Safari</span>
+            <img src="assets/images/exp_camel_safari.jpg" alt="Camel Safari at Sunset" class="trending-card-img"
+              loading="lazy">
+            <div class="trending-card-overlay"></div>
+            <div class="trending-card-content">
+              <div class="trending-card-info">
+                <h3 class="trending-card-title">Camel Safari at Sunset</h3>
+                <div class="trending-stars" aria-label="5 star rating">
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                  <svg viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg>
+                </div>
+              </div>
+              <span class="trending-book-btn">
+                Book Now
+                <svg viewBox="0 0 20 20" fill="currentColor" class="trending-btn-icon">
+                  <path fill-rule="evenodd"
+                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                    clip-rule="evenodd"></path>
+                </svg>
+              </span>
+            </div>
+          </a>
+
+          <!-- Right Column: Stacked 3 Compact Cards -->
+          <div class="trending-col-3cards">
+
+            <!-- Card 3: Candlelight Dinner on the Dunes -->
+            <a href="#" data-route="activityDetail" data-param="candlelight-dinner-dunes"
+              class="trending-card-compact group">
+              <span class="trending-badge">Romantic Dining</span>
+              <img src="assets/images/exp_candlelight_dinner.jpg" alt="Candlelight Dinner on the Dunes"
+                class="trending-card-img" loading="lazy">
+              <div class="trending-card-overlay"></div>
+              <div class="trending-card-content">
+                <div class="trending-card-info">
+                  <h3 class="trending-card-title">Candlelight Dinner on Dunes</h3>
+                  <div class="trending-stars" aria-label="5 star rating">
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                  </div>
+                </div>
+                <span class="trending-book-btn">
+                  Book Now
+                  <svg viewBox="0 0 20 20" fill="currentColor" class="trending-btn-icon">
+                    <path fill-rule="evenodd"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+
+            <!-- Card 4: ATV Quad Biking -->
+            <a href="#" data-route="activityDetail" data-param="atv-quad-biking" class="trending-card-compact group">
+              <span class="trending-badge">Quad Biking</span>
+              <img src="assets/images/exp_atv_biking.jpg" alt="ATV Quad Biking" class="trending-card-img"
+                loading="lazy">
+              <div class="trending-card-overlay"></div>
+              <div class="trending-card-content">
+                <div class="trending-card-info">
+                  <h3 class="trending-card-title">ATV Quad Biking</h3>
+                  <div class="trending-stars" aria-label="5 star rating">
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                  </div>
+                </div>
+                <span class="trending-book-btn">
+                  Book Now
+                  <svg viewBox="0 0 20 20" fill="currentColor" class="trending-btn-icon">
+                    <path fill-rule="evenodd"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+
+            <!-- Card 5: Parasailing Adventure -->
+            <a href="#" data-route="activityDetail" data-param="parasailing-adventure"
+              class="trending-card-compact group">
+              <span class="trending-badge">Water Sports</span>
+              <img src="assets/images/exp_parasailing.jpg" alt="Parasailing Adventure" class="trending-card-img"
+                loading="lazy">
+              <div class="trending-card-overlay"></div>
+              <div class="trending-card-content">
+                <div class="trending-card-info">
+                  <h3 class="trending-card-title">Parasailing Adventure</h3>
+                  <div class="trending-stars" aria-label="5 star rating">
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                    <svg viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg>
+                  </div>
+                </div>
+                <span class="trending-book-btn">
+                  Book Now
+                  <svg viewBox="0 0 20 20" fill="currentColor" class="trending-btn-icon">
+                    <path fill-rule="evenodd"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 9: AI TRAVEL ASSISTANT (TEMPORARILY COMMENTED OUT) ====================
+    <section class="py-10 md:py-16 bg-white" aria-labelledby="ai-heading">
+      <div class="site-container">
+        <div class="ai-banner-card">
+          <div class="ai-assistant-inner">
+
+            <!- Left Column: Title & 3 Feature Points ->
+            <div class="ai-assistant-left">
+              <div class="ai-pill-tag">
+                <span class="ai-sparkle">✨</span>
+                <span>AI-Powered Itinerary</span>
+              </div>
+              <h2 id="ai-heading" class="ai-heading-title">
+                MEET YOUR AI<br>TRAVEL ASSISTANT
+              </h2>
+
+              <div class="ai-feature-list">
+                <!- Feature 1 ->
+                <div class="ai-feature-item">
+                  <div class="ai-feature-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#172B4D" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  </div>
+                  <div class="ai-feature-content">
+                    <span class="ai-feature-text">Plan Your Activities in Seconds</span>
+                  </div>
+                </div>
+
+                <!- Feature 2 ->
+                <div class="ai-feature-item">
+                  <div class="ai-feature-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#172B4D" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="3"></circle>
+                      <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                      </path>
+                    </svg>
+                  </div>
+                  <div class="ai-feature-content">
+                    <span class="ai-feature-text">Tell Us Your Destination, Budget and Interests</span>
+                  </div>
+                </div>
+
+                <!- Feature 3 ->
+                <div class="ai-feature-item">
+                  <div class="ai-feature-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#172B4D" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                      </polygon>
+                    </svg>
+                  </div>
+                  <div class="ai-feature-content">
+                    <span class="ai-feature-text">Get Personalised Experience Recommendations</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!- Center Column: Bot Row + Interactive Prompt Card ->
+            <div class="ai-assistant-center">
+              <!- Top Bot Row ->
+              <div class="ai-bot-row">
+                <div class="ai-bot-avatar-wrap">
+                  <svg viewBox="0 0 46 46" class="ai-bot-avatar" width="46" height="46" fill="none">
+                    <!- Head Shadow ->
+                    <circle cx="23" cy="24" r="19" fill="#0E223D" opacity="0.1" />
+                    <!- White Capsule Head ->
+                    <circle cx="23" cy="23" r="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.8" />
+                    <!- Antenna ->
+                    <line x1="23" y1="3" x2="23" y2="7" stroke="#172B4D" stroke-width="2.2" stroke-linecap="round" />
+                    <circle cx="23" cy="3" r="2.2" fill="#0088cc" />
+                    <!- Ear pods ->
+                    <rect x="2" y="19" width="4" height="8" rx="2" fill="#172B4D" />
+                    <rect x="40" y="19" width="4" height="8" rx="2" fill="#172B4D" />
+                    <!- Visor Screen ->
+                    <rect x="10" y="14" width="26" height="15" rx="7.5" fill="#172B4D" />
+                    <!- Glowing Eyes ->
+                    <circle cx="17" cy="21.5" r="3" fill="#5CE1E6" />
+                    <circle cx="29" cy="21.5" r="3" fill="#5CE1E6" />
+                    <!- Smile Line ->
+                    <path d="M20.5 24 Q23 26 25.5 24" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"
+                      fill="none" />
+                  </svg>
+                </div>
+
+                <!- Speech Bubble ->
+                <div id="ai-bot-bubble" class="ai-bot-bubble">
+                  <p class="ai-bubble-line1">Hi! I'm your AI travel assistant.</p>
+                  <p class="ai-bubble-line2">Tell me about your trip.</p>
+                </div>
+
+                <!- Floating Paper Plane with flight trail ->
+                <div class="ai-paper-plane-wrap">
+                  <svg class="ai-paper-plane" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D375B"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 2L11 13"></path>
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <!- Card Form ->
+              <div class="ai-card">
+                <form id="ai-assistant-preview-form" class="ai-form">
+                  <!- Field 1: Destination ->
+                  <div class="ai-field-row">
+                    <div class="ai-field-icon">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2B3B60" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                      </svg>
+                    </div>
+                    <div class="ai-field-content">
+                      <label for="ai-dest-input" class="ai-field-label">Destination</label>
+                      <input type="text" id="ai-dest-input" value="Jaipur" placeholder="e.g. Jaipur"
+                        class="ai-field-input">
+                    </div>
+                  </div>
+
+                  <!- Field 2: Budget ->
+                  <div class="ai-field-row">
+                    <div class="ai-field-icon">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2B3B60" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="21" x2="21" y2="21"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <path d="M4 10l8-6 8 6"></path>
+                        <line x1="6" y1="14" x2="6" y2="18"></line>
+                        <line x1="10" y1="14" x2="10" y2="18"></line>
+                        <line x1="14" y1="14" x2="14" y2="18"></line>
+                        <line x1="18" y1="14" x2="18" y2="18"></line>
+                      </svg>
+                    </div>
+                    <div class="ai-field-content">
+                      <label for="ai-budget-input" class="ai-field-label">Budget</label>
+                      <input type="text" id="ai-budget-input" value="₹ —" placeholder="e.g. ₹ —" class="ai-field-input">
+                    </div>
+                  </div>
+
+                  <!- Field 3: Interests ->
+                  <div class="ai-field-row">
+                    <div class="ai-field-icon">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2B3B60" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3l4 8 5-5 5 15H2L8 3z"></path>
+                      </svg>
+                    </div>
+                    <div class="ai-field-content">
+                      <label for="ai-interests-input" class="ai-field-label">Interests</label>
+                      <input type="text" id="ai-interests-input" value="Adventure, Nature, Culture"
+                        placeholder="e.g. Adventure, Nature, Culture" class="ai-field-input">
+                    </div>
+                  </div>
+
+                  <!- Floating Round Action Button ->
+                  <button type="submit" class="ai-submit-circle-btn" aria-label="Submit AI prompt"
+                    title="Generate AI Plan">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="7" y1="17" x2="17" y2="7"></line>
+                      <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!- Right Column: Smiling Traveller with Nature Leaves Decor ->
+            <div class="ai-assistant-right">
+              <div class="ai-traveller-wrap">
+                <img src="assets/images/ai_traveller.jpg" alt="Happy smiling traveller with tropical leaves"
+                  class="ai-traveller-img" loading="lazy">
+                <!- Floating Mini Badge ->
+                <div class="ai-floating-pill">
+                  <span class="ai-floating-pill-dot"></span>
+                  <span>✨ Itinerary ready in 3s</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+    ==================== END SECTION 9 ==================== -->
+
+    <!-- ==================== SECTION 10: WHY BOOK WITH US? (TEMPORARILY COMMENTED OUT) ====================
+    <section class="why-book-section py-16 md:py-20" aria-labelledby="why-heading">
+      <div class="site-container">
+
+        <!- Section Header ->
+        <div class="text-center max-w-2xl mx-auto mb-8 md:mb-10">
+          <span
+            class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#333F70]/10 text-[#333F70] mb-3">
+            <svg class="w-3.5 h-3.5 text-[#333F70]" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd" />
+            </svg>
+            Trust & Quality Guaranteed
+          </span>
+          <h2 id="why-heading"
+            class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#172B4D] tracking-tight mb-3">
+            Why Book With Us?
+          </h2>
+          <p class="text-sm sm:text-base text-slate-500 leading-relaxed">
+            Over 2 Million+ travelers trust us for authentic, hassle-free, and memorable experiences worldwide.
+          </p>
+        </div>
+
+        <!- 10 Benefits Grid: 5 columns x 2 rows on desktop, 3 on tablet, 2 on mobile ->
+        <div class="why-grid mb-10">
+
+          <!- 1. Verified Activity Providers ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-indigo">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Verified Activity Providers</h3>
+            <p class="why-card-desc">Handpicked, safety-audited local experts & certified hosts.</p>
+          </div>
+
+          <!- 2. Best Price Guarantee ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-amber">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Best Price Guarantee</h3>
+            <p class="why-card-desc">Direct partner rates with zero hidden markups or surprise fees.</p>
+          </div>
+
+          <!- 3. Secure Online Payments ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-emerald">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Secure Online Payments</h3>
+            <p class="why-card-desc">256-bit bank encryption & global trusted payment gateways.</p>
+          </div>
+
+          <!- 4. Instant Booking Confirmation ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-blue">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Instant Booking Confirmation</h3>
+            <p class="why-card-desc">Mobile e-tickets and QR vouchers delivered instantly.</p>
+          </div>
+
+          <!- 5. Easy Cancellation Options ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-rose">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Easy Cancellation Options</h3>
+            <p class="why-card-desc">Hassle-free 100% refund up to 24 hours prior to activity.</p>
+          </div>
+
+          <!- 6. 24/7 Customer Support ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-cyan">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">24/7 Customer Support</h3>
+            <p class="why-card-desc">Round-the-clock multilingual assistance via chat, phone & email.</p>
+          </div>
+
+          <!- 7. Trusted Reviews ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-gold">
+              <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Trusted Reviews</h3>
+            <p class="why-card-desc">Genuine ratings & unedited photos from verified explorers.</p>
+          </div>
+
+          <!- 8. AI-Powered Recommendations ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-purple">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">AI-Powered Recommendations</h3>
+            <p class="why-card-desc">Smart itineraries customized to your travel style & budget.</p>
+          </div>
+
+          <!- 9. Transparent Pricing ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-sky">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Transparent Pricing</h3>
+            <p class="why-card-desc">All taxes, park entry & booking fees clearly shown upfront.</p>
+          </div>
+
+          <!- 10. Safe and Reliable Experiences ->
+          <div class="why-book-card group">
+            <div class="why-icon-box why-icon-orange">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <h3 class="why-card-title">Safe and Reliable Experiences</h3>
+            <p class="why-card-desc">Fully insured tours with licensed guides & certified equipment.</p>
+          </div>
+
+        </div>
+
+        <!- Trust Stats Bar ->
+        <div class="why-trust-bar">
+          <div class="why-trust-item">
+            <div class="why-trust-badge why-icon-emerald">
+              ★
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">4.9 / 5.0 Star Rating</div>
+              <div class="text-xs text-slate-500">Based on 150,000+ real reviews</div>
+            </div>
+          </div>
+          <div class="why-trust-divider"></div>
+          <div class="why-trust-item">
+            <div class="why-trust-badge why-icon-blue">
+              ✓
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">100% Verified Partners</div>
+              <div class="text-xs text-slate-500">Licensed & certified operators only</div>
+            </div>
+          </div>
+          <div class="why-trust-divider"></div>
+          <div class="why-trust-item">
+            <div class="why-trust-badge why-icon-purple">
+              🛡️
+            </div>
+            <div>
+              <div class="text-sm font-bold text-slate-800">Secure Traveler Guarantee</div>
+              <div class="text-xs text-slate-500">Protected booking & easy refunds</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+    ==================== END SECTION 10 ==================== -->
+
+    <!-- ==================== SECTION 11: FEATURED COLLECTIONS ==================== -->
+    <section class="collection-section" aria-labelledby="collections-heading">
+      <div class="site-container">
+
+        <!-- Section Header with View All -->
+        <div class="collection-header-row">
+          <div>
+            <span class="collection-badge">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Curated For You
+            </span>
+            <h2 id="collections-heading" class="collection-main-title">
+              Handpicked Experiences for You
+            </h2>
+            <p class="collection-sub-title">
+              Themed collections tailored to every mood, budget, and travel companion.
+            </p>
+          </div>
+          <a href="#" class="collection-view-all-btn">
+            <span>View All Collections</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+
+        <!-- 10 Photographic Collection Cards (5 columns desktop, 3 tablet, 2 mobile) -->
+        <div class="collection-grid">
+
+          <!-- 1. Best Experiences for Couples -->
+          <a href="#" data-route="categoryDetail" data-param="couples" data-category="couples romantic"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_couples.jpg" alt="Romantic couple watching sunset" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">💖 Romantic Escapes</span>
+                <span class="collection-rating-badge">★ 4.9</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>14+ Romantic Spots</span>
+              </div>
+              <h3 class="collection-title">Best Experiences for Couples</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹1,499</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 2. Family-Friendly Activities -->
+          <a href="#" data-route="categoryDetail" data-param="family-friendly" data-category="family"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_family.jpg" alt="Family playing together on beach" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">👨‍👩‍👧 All-Ages Fun</span>
+                <span class="collection-rating-badge">★ 4.8</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>22+ Family Tours</span>
+              </div>
+              <h3 class="collection-title">Family-Friendly Activities</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹799</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 3. Top Adventure Activities -->
+          <a href="#" data-route="categoryDetail" data-param="top-adventure" data-category="adventure"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_adventure.jpg" alt="Hiker standing on mountain ridge" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">⚡ High Adrenaline</span>
+                <span class="collection-rating-badge">★ 4.9</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>18+ Thrill Sports</span>
+              </div>
+              <h3 class="collection-title">Top Adventure Activities</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹999</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 4. Luxury Travel Experiences -->
+          <a href="#" data-route="categoryDetail" data-param="luxury-travel" data-category="luxury"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_luxury.jpg" alt="Overwater bungalow luxury resort" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">✨ VIP & Luxury</span>
+                <span class="collection-rating-badge">★ 5.0</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>10+ Bespoke Stays</span>
+              </div>
+              <h3 class="collection-title">Luxury Travel Experiences</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹4,999</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 5. Experiences Under ₹1,000 -->
+          <a href="#" data-route="categoryDetail" data-param="under-1000" data-category="budget"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_budget.jpg" alt="Backpacker taking in mountain view" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">🏷️ Pocket Friendly</span>
+                <span class="collection-rating-badge">★ 4.7</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>30+ Budget Deals</span>
+              </div>
+              <h3 class="collection-title">Experiences Under ₹1,000</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹399</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 6. Weekend Getaways -->
+          <a href="#" data-route="categoryDetail" data-param="weekend-getaways" data-category="romantic adventure"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_weekend.jpg" alt="Lush green hill station getaway" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">🚗 Short Breaks</span>
+                <span class="collection-rating-badge">★ 4.8</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>16+ Road Trips</span>
+              </div>
+              <h3 class="collection-title">Weekend Getaways</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹1,299</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 7. Group Activities -->
+          <a href="#" data-route="categoryDetail" data-param="group-activities" data-category="groups family"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_group.jpg" alt="Friends hiking together in scenic outdoors"
+                class="collection-img" loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">🎉 Friends & Teams</span>
+                <span class="collection-rating-badge">★ 4.9</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>15+ Group Events</span>
+              </div>
+              <h3 class="collection-title">Group Activities</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹899</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 8. Corporate Experiences -->
+          <a href="#" data-route="categoryDetail" data-param="corporate-experiences" data-category="groups"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_corporate.jpg" alt="Corporate team retreat outdoors" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">💼 Team Offsites</span>
+                <span class="collection-rating-badge">★ 4.9</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>12+ Corporate Retreats</span>
+              </div>
+              <h3 class="collection-title">Corporate Experiences</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹2,499</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 9. School and College Tours -->
+          <a href="#" data-route="categoryDetail" data-param="school-college-tours" data-category="groups budget"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_school.jpg" alt="Students exploring natural landmarks" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">🎓 Student Trips</span>
+                <span class="collection-rating-badge">★ 4.8</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>20+ Educational Treks</span>
+              </div>
+              <h3 class="collection-title">School & College Tours</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹599</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+          <!-- 10. Most Booked Experiences -->
+          <a href="#" data-route="categoryDetail" data-param="most-booked" data-category="adventure luxury"
+            class="collection-card group">
+            <div class="collection-card-img-wrap">
+              <img src="assets/images/col_most_booked.jpg" alt="Hot air balloons floating in sky" class="collection-img"
+                loading="lazy">
+              <div class="collection-img-gradient"></div>
+              <div class="collection-top-row">
+                <span class="collection-tag">🔥 Trending Choice</span>
+                <span class="collection-rating-badge">★ 5.0</span>
+              </div>
+            </div>
+            <div class="collection-card-body">
+              <div class="collection-activity-count">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>25+ Top Rated Sellers</span>
+              </div>
+              <h3 class="collection-title">Most Booked Experiences</h3>
+              <div class="collection-meta">
+                <div class="collection-price-pill">
+                  <span class="collection-price-label">From</span>
+                  <span class="collection-price-val">₹699</span>
+                </div>
+                <span class="collection-explore-btn">
+                  <span>Explore</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </a>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 12: EXCLUSIVE DEALS AND OFFERS ==================== -->
+    <section class="offers-section" aria-labelledby="offers-heading">
+      <div class="site-container">
+        <!-- Section Header -->
+        <div class="offers-header">
+          <span class="offers-badge">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+            </svg>
+            Exclusive Promo Deals
+          </span>
+          <h2 id="offers-heading" class="offers-title">
+            Exclusive Deals and Offers
+          </h2>
+          <p class="offers-subtitle">
+            Unlock instant promo codes, early-bird vouchers, and group travel discounts on your next escape.
+          </p>
+        </div>
+
+        <!-- 4 Luxury Voucher Cards -->
+        <div class="offers-grid">
+
+          <!-- Deal 1: Limited-Time Discounts -->
+          <div class="offer-voucher-card theme-coral">
+            <div class="offer-img-wrap">
+              <img src="assets/images/offer_limited.jpg" alt="Limited-Time Discounts on coastal tours" class="offer-img"
+                loading="lazy">
+              <div class="offer-img-gradient"></div>
+              <span class="offer-badge-floating">⚡ Flash Sale</span>
+              <span class="offer-discount-chip">UP TO 40% OFF</span>
+            </div>
+            <!-- Perforated Ticket Divider -->
+            <div class="offer-ticket-divider">
+              <div class="offer-notch-left"></div>
+              <div class="offer-dashed-line"></div>
+              <div class="offer-notch-right"></div>
+            </div>
+            <div class="offer-card-body">
+              <h3 class="offer-card-title">Limited-Time Discounts</h3>
+              <p class="offer-card-desc">Instant flash savings on premier boat rides, lake tours, and coastal stays.</p>
+
+              <!-- Coupon Code Box -->
+              <div class="offer-coupon-box" onclick="copyPromoCode(this, 'FLASH40')" title="Click to copy code">
+                <div class="offer-coupon-info">
+                  <span class="offer-coupon-label">Coupon Code</span>
+                  <span class="offer-coupon-code">FLASH40</span>
+                </div>
+                <button type="button" class="offer-copy-btn" aria-label="Copy FLASH40 code">
+                  <span>Copy</span>
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="offer-footer-row">
+                <span class="offer-validity-tag">
+                  <span class="offer-pulse-dot"></span>
+                  Valid 48 Hours
+                </span>
+                <a href="#" data-route="offers" class="offer-claim-btn">
+                  <span>Claim Offer</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deal 2: Early Booking Offers -->
+          <div class="offer-voucher-card theme-blue">
+            <div class="offer-img-wrap">
+              <img src="assets/images/offer_early.jpg" alt="Early Booking Offers on luxury resorts" class="offer-img"
+                loading="lazy">
+              <div class="offer-img-gradient"></div>
+              <span class="offer-badge-floating">✈️ Advance Saver</span>
+              <span class="offer-discount-chip">FLAT 25% OFF</span>
+            </div>
+            <!-- Perforated Ticket Divider -->
+            <div class="offer-ticket-divider">
+              <div class="offer-notch-left"></div>
+              <div class="offer-dashed-line"></div>
+              <div class="offer-notch-right"></div>
+            </div>
+            <div class="offer-card-body">
+              <h3 class="offer-card-title">Early Booking Offers</h3>
+              <p class="offer-card-desc">Book 30+ days early and enjoy complimentary wellness treatments & upgrades.</p>
+
+              <!-- Coupon Code Box -->
+              <div class="offer-coupon-box" onclick="copyPromoCode(this, 'EARLY25')" title="Click to copy code">
+                <div class="offer-coupon-info">
+                  <span class="offer-coupon-label">Coupon Code</span>
+                  <span class="offer-coupon-code">EARLY25</span>
+                </div>
+                <button type="button" class="offer-copy-btn" aria-label="Copy EARLY25 code">
+                  <span>Copy</span>
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="offer-footer-row">
+                <span class="offer-validity-tag">
+                  <span class="offer-pulse-dot"></span>
+                  Valid 2026 Trips
+                </span>
+                <a href="#" data-route="offers" class="offer-claim-btn">
+                  <span>Claim Offer</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deal 3: Group Booking Discounts -->
+          <div class="offer-voucher-card theme-teal">
+            <div class="offer-img-wrap">
+              <img src="assets/images/offer_group.jpg" alt="Group Booking Discounts for friends and teams"
+                class="offer-img" loading="lazy">
+              <div class="offer-img-gradient"></div>
+              <span class="offer-badge-floating">👥 Squad & Team</span>
+              <span class="offer-discount-chip">SAVE ₹3,000</span>
+            </div>
+            <!-- Perforated Ticket Divider -->
+            <div class="offer-ticket-divider">
+              <div class="offer-notch-left"></div>
+              <div class="offer-dashed-line"></div>
+              <div class="offer-notch-right"></div>
+            </div>
+            <div class="offer-card-body">
+              <h3 class="offer-card-title">Group Booking Discounts</h3>
+              <p class="offer-card-desc">Special companion rates and dedicated tour coordinators for 4+ travelers.</p>
+
+              <!-- Coupon Code Box -->
+              <div class="offer-coupon-box" onclick="copyPromoCode(this, 'GROUPFUN')" title="Click to copy code">
+                <div class="offer-coupon-info">
+                  <span class="offer-coupon-label">Coupon Code</span>
+                  <span class="offer-coupon-code">GROUPFUN</span>
+                </div>
+                <button type="button" class="offer-copy-btn" aria-label="Copy GROUPFUN code">
+                  <span>Copy</span>
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="offer-footer-row">
+                <span class="offer-validity-tag">
+                  <span class="offer-pulse-dot"></span>
+                  Min. 4 Guests
+                </span>
+                <a href="#" data-route="offers" class="offer-claim-btn">
+                  <span>Claim Offer</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deal 4: Seasonal Special Offers -->
+          <div class="offer-voucher-card theme-amber">
+            <div class="offer-img-wrap">
+              <img src="assets/images/offer_seasonal.jpg" alt="Seasonal Special Offers on mountain getaways"
+                class="offer-img" loading="lazy">
+              <div class="offer-img-gradient"></div>
+              <span class="offer-badge-floating">🌴 Festive Special</span>
+              <span class="offer-discount-chip">EXTRA 20% OFF</span>
+            </div>
+            <!-- Perforated Ticket Divider -->
+            <div class="offer-ticket-divider">
+              <div class="offer-notch-left"></div>
+              <div class="offer-dashed-line"></div>
+              <div class="offer-notch-right"></div>
+            </div>
+            <div class="offer-card-body">
+              <h3 class="offer-card-title">Seasonal Special Offers</h3>
+              <p class="offer-card-desc">Curated festive retreats, sunset cruises, and seasonal mountain getaways.</p>
+
+              <!-- Coupon Code Box -->
+              <div class="offer-coupon-box" onclick="copyPromoCode(this, 'SEASON20')" title="Click to copy code">
+                <div class="offer-coupon-info">
+                  <span class="offer-coupon-label">Coupon Code</span>
+                  <span class="offer-coupon-code">SEASON20</span>
+                </div>
+                <button type="button" class="offer-copy-btn" aria-label="Copy SEASON20 code">
+                  <span>Copy</span>
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="offer-footer-row">
+                <span class="offer-validity-tag">
+                  <span class="offer-pulse-dot"></span>
+                  High Demand
+                </span>
+                <a href="#" data-route="offers" class="offer-claim-btn">
+                  <span>Claim Offer</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Centered View All CTA -->
+        <div class="offers-cta-wrap">
+          <a href="#" data-route="offers" class="offers-view-all-cta">
+            <span>View All 18+ Active Offers</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+
+        <!-- Interactive 1-Click Copy Script -->
+        <script>
+          function copyPromoCode(el, code) {
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(code).catch(() => { });
+            }
+            const btn = el.querySelector('.offer-copy-btn');
+            if (btn) {
+              const orig = btn.innerHTML;
+              btn.innerHTML = '<span>✓ Copied!</span>';
+              btn.style.background = '#00A887';
+              btn.style.color = '#FFFFFF';
+              btn.style.borderColor = '#00A887';
+              setTimeout(() => {
+                btn.innerHTML = orig;
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+              }, 1800);
+            }
+          }
+        </script>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 13: CLIENT'S TESTIMONIALS (TEMPORARILY COMMENTED OUT) ====================
+    <section class="client-testimonials-section" id="traveler-testimonials" aria-labelledby="client-testimonials-title">
+      <div class="site-container client-testimonials-container">
+
+        <!- Header: Left Title Meta + Right Dark Pill Nav Capsule ->
+        <div class="client-testimonials-header">
+          <div class="client-testimonials-header-left">
+            <span class="client-testimonials-badge">WHAT OUR CLIENTS SAY</span>
+            <h2 id="client-testimonials-title" class="client-testimonials-title">
+              Client's Testimonials
+            </h2>
+            <p class="client-testimonials-subtitle">
+              Hear directly from travelers, explorers, and adventure seekers who trust our curated experiences
+              worldwide.
+            </p>
+          </div>
+
+          <!- Top-Right Dark Pill Navigation Capsule ->
+          <div class="client-testimonials-nav-pill">
+            <button type="button" class="nav-pill-btn prev-btn" id="clientPrevBtn" aria-label="Previous testimonial">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+            <button type="button" class="nav-pill-btn next-btn" id="clientNextBtn" aria-label="Next testimonial">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!- Carousel Viewport & Track ->
+        <div class="client-testimonials-viewport" id="clientSliderViewport">
+          <div class="client-testimonials-track" id="clientSliderTrack">
+
+            <!- Card 1: Ben Watt ->
+            <div class="client-testimonials-item">
+              <div class="chamfer-card-wrapper">
+                <div class="chamfer-card-inner">
+                  <div>
+                    <!- 5 Stars ->
+                    <div class="review-stars-row" aria-label="5 out of 5 stars">
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </div>
+                    <!- Title ->
+                    <h3 class="review-card-title">Manali Snow Trek & Campfire Experience</h3>
+                    <!- Quote Body ->
+                    <p class="review-card-text">
+                      "Travel completely transformed our Himalayan getaway! Seamless private 4x4 snow transfers, roaring
+                      campfire under snowy peaks, and exceptional hospitality throughout our entire journey."
+                    </p>
+                  </div>
+
+                  <div>
+                    <!- Divider Line ->
+                    <div class="review-card-divider"></div>
+                    <!- Footer Row ->
+                    <div class="review-card-footer">
+                      <div class="review-author-wrap">
+                        <div class="review-avatar-circle avatar-navy">
+                          <span>BW</span>
+                        </div>
+                        <div class="review-author-info">
+                          <h4 class="review-author-name">Ben Watt</h4>
+                          <p class="review-author-role">Verified Explorer</p>
+                        </div>
+                      </div>
+                      <div class="review-quote-icon">
+                        <svg viewBox="0 0 24 24" class="review-quote-svg">
+                          <path
+                            d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!- Card 2: Dexter Turner ->
+            <div class="client-testimonials-item">
+              <div class="chamfer-card-wrapper">
+                <div class="chamfer-card-inner">
+                  <div>
+                    <div class="review-stars-row" aria-label="5 out of 5 stars">
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </div>
+                    <h3 class="review-card-title">Desert Safari & Luxury Swiss Tent</h3>
+                    <p class="review-card-text">
+                      "Our desert safari and private luxury Swiss tent stay in Jaisalmer was sheer magic. The campfire
+                      folk music, star-filled dunes, and five-star hospitality exceeded every expectation."
+                    </p>
+                  </div>
+
+                  <div>
+                    <div class="review-card-divider"></div>
+                    <div class="review-card-footer">
+                      <div class="review-author-wrap">
+                        <div class="review-avatar-circle avatar-mint">
+                          <span>DT</span>
+                        </div>
+                        <div class="review-author-info">
+                          <h4 class="review-author-name">Dexter Turner</h4>
+                          <p class="review-author-role">Safari Specialist</p>
+                        </div>
+                      </div>
+                      <div class="review-quote-icon">
+                        <svg viewBox="0 0 24 24" class="review-quote-svg">
+                          <path
+                            d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!- Card 3: Isabella Owen ->
+            <div class="client-testimonials-item">
+              <div class="chamfer-card-wrapper">
+                <div class="chamfer-card-inner">
+                  <div>
+                    <div class="review-stars-row" aria-label="5 out of 5 stars">
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </div>
+                    <h3 class="review-card-title">Andaman Scuba & Sunset Catamaran</h3>
+                    <p class="review-card-text">
+                      "The certified scuba instructor was super patient with first-timers and the sunset catamaran
+                      cruise was the highlight of our vacation. Instant confirmation and great hotel pickup!"
+                    </p>
+                  </div>
+
+                  <div>
+                    <div class="review-card-divider"></div>
+                    <div class="review-card-footer">
+                      <div class="review-author-wrap">
+                        <div class="review-avatar-circle avatar-teal">
+                          <span>IO</span>
+                        </div>
+                        <div class="review-author-info">
+                          <h4 class="review-author-name">Isabella Owen</h4>
+                          <p class="review-author-role">Travel Blogger</p>
+                        </div>
+                      </div>
+                      <div class="review-quote-icon">
+                        <svg viewBox="0 0 24 24" class="review-quote-svg">
+                          <path
+                            d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!- Card 4: Rahul Deshmukh ->
+            <div class="client-testimonials-item">
+              <div class="chamfer-card-wrapper">
+                <div class="chamfer-card-inner">
+                  <div>
+                    <div class="review-stars-row" aria-label="5 out of 5 stars">
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </div>
+                    <h3 class="review-card-title">Rishikesh River Rafting Expedition</h3>
+                    <p class="review-card-text">
+                      "Planning group adventures used to be chaotic, but Travel coordinated our entire river rafting
+                      expedition and riverside resort stay flawlessly. Punctual certified guides and top-tier safety
+                      gear!"
+                    </p>
+                  </div>
+
+                  <div>
+                    <div class="review-card-divider"></div>
+                    <div class="review-card-footer">
+                      <div class="review-author-wrap">
+                        <div class="review-avatar-circle avatar-slate">
+                          <span>RD</span>
+                        </div>
+                        <div class="review-author-info">
+                          <h4 class="review-author-name">Rahul Deshmukh</h4>
+                          <p class="review-author-role">Mountaineer & Guide</p>
+                        </div>
+                      </div>
+                      <div class="review-quote-icon">
+                        <svg viewBox="0 0 24 24" class="review-quote-svg">
+                          <path
+                            d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!- Card 5: Aarav Mehta ->
+            <div class="client-testimonials-item">
+              <div class="chamfer-card-wrapper">
+                <div class="chamfer-card-inner">
+                  <div>
+                    <div class="review-stars-row" aria-label="5 out of 5 stars">
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <svg class="review-star-icon" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </div>
+                    <h3 class="review-card-title">Rajasthan Heritage Forts & Palaces</h3>
+                    <p class="review-card-text">
+                      "Every fort tour, palace entry, and private heritage guide booked through Travel was top notch.
+                      Zero waiting lines and wonderful royal hospitality throughout our Rajasthan trip."
+                    </p>
+                  </div>
+
+                  <div>
+                    <div class="review-card-divider"></div>
+                    <div class="review-card-footer">
+                      <div class="review-author-wrap">
+                        <div class="review-avatar-circle avatar-blue">
+                          <span>AM</span>
+                        </div>
+                        <div class="review-author-info">
+                          <h4 class="review-author-name">Aarav Mehta</h4>
+                          <p class="review-author-role">Heritage Enthusiast</p>
+                        </div>
+                      </div>
+                      <div class="review-quote-icon">
+                        <svg viewBox="0 0 24 24" class="review-quote-svg">
+                          <path
+                            d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!- Slider Pagination Dots ->
+        <div class="client-testimonials-dots" id="clientSliderDots" aria-label="Testimonial pagination"></div>
+
+      </div>
+
+      <!- Testimonial Slider Javascript ->
+      <script>
+        (function () {
+          const track = document.getElementById('clientSliderTrack');
+          const viewport = document.getElementById('clientSliderViewport');
+          const items = document.querySelectorAll('.client-testimonials-item');
+          const prevBtn = document.getElementById('clientPrevBtn');
+          const nextBtn = document.getElementById('clientNextBtn');
+          const dotsContainer = document.getElementById('clientSliderDots');
+
+          if (!track || !viewport || items.length === 0) return;
+
+          let currentIndex = 0;
+          let itemsPerView = getItemsPerView();
+          let maxIndex = Math.max(0, items.length - itemsPerView);
+          let autoPlayTimer = null;
+
+          function getItemsPerView() {
+            return window.innerWidth >= 768 ? 2 : 1;
+          }
+
+          function createDots() {
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            const totalSteps = maxIndex + 1;
+            for (let i = 0; i < totalSteps; i++) {
+              const dot = document.createElement('button');
+              dot.type = 'button';
+              dot.className = 'client-dot' + (i === currentIndex ? ' active' : '');
+              dot.setAttribute('aria-label', 'Go to testimonial slide ' + (i + 1));
+              dot.addEventListener('click', () => {
+                goToSlide(i);
+                restartAutoPlay();
+              });
+              dotsContainer.appendChild(dot);
+            }
+          }
+
+          function updateSlider() {
+            const firstItem = items[0];
+            if (!firstItem) return;
+
+            const itemWidth = firstItem.offsetWidth;
+            const gap = 28;
+            const offset = currentIndex * (itemWidth + gap);
+
+            track.style.transform = `translateX(-${offset}px)`;
+
+            if (dotsContainer) {
+              const dots = dotsContainer.querySelectorAll('.client-dot');
+              dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === currentIndex);
+              });
+            }
+          }
+
+          function goToSlide(index) {
+            if (index < 0) {
+              currentIndex = maxIndex;
+            } else if (index > maxIndex) {
+              currentIndex = 0;
+            } else {
+              currentIndex = index;
+            }
+            updateSlider();
+          }
+
+          if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+              goToSlide(currentIndex - 1);
+              restartAutoPlay();
+            });
+          }
+
+          if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+              goToSlide(currentIndex + 1);
+              restartAutoPlay();
+            });
+          }
+
+          function startAutoPlay() {
+            clearInterval(autoPlayTimer);
+            autoPlayTimer = setInterval(() => {
+              goToSlide(currentIndex + 1);
+            }, 5200);
+          }
+
+          function restartAutoPlay() {
+            startAutoPlay();
+          }
+
+          viewport.addEventListener('mouseenter', () => clearInterval(autoPlayTimer));
+          viewport.addEventListener('mouseleave', () => startAutoPlay());
+
+          let startTouchX = 0;
+          viewport.addEventListener('touchstart', (e) => {
+            startTouchX = e.touches[0].clientX;
+          }, { passive: true });
+
+          viewport.addEventListener('touchend', (e) => {
+            const diffX = e.changedTouches[0].clientX - startTouchX;
+            if (diffX > 40) {
+              goToSlide(currentIndex - 1);
+              restartAutoPlay();
+            } else if (diffX < -40) {
+              goToSlide(currentIndex + 1);
+              restartAutoPlay();
+            }
+          }, { passive: true });
+
+          document.addEventListener('keydown', (e) => {
+            const rect = viewport.getBoundingClientRect();
+            const inView = rect.top < window.innerHeight && rect.bottom > 0;
+            if (!inView) return;
+            if (e.key === 'ArrowLeft') {
+              goToSlide(currentIndex - 1);
+              restartAutoPlay();
+            } else if (e.key === 'ArrowRight') {
+              goToSlide(currentIndex + 1);
+              restartAutoPlay();
+            }
+          });
+
+          window.addEventListener('resize', () => {
+            const newItemsPerView = getItemsPerView();
+            if (newItemsPerView !== itemsPerView) {
+              itemsPerView = newItemsPerView;
+              maxIndex = Math.max(0, items.length - itemsPerView);
+              if (currentIndex > maxIndex) currentIndex = maxIndex;
+              createDots();
+            }
+            updateSlider();
+          });
+
+          createDots();
+          updateSlider();
+          startAutoPlay();
+        })();
+      </script>
+    </section>
+    ==================== END SECTION 13 ==================== -->
+
+    <!-- ==================== SECTION 14: SUPPLIER & TRAVEL PARTNER PROMOS ==================== -->
+    <section class="partner-promos-section" aria-label="Partner Promotions">
+      <div class="site-container">
+        <div class="partner-promos-grid">
+
+          <!-- Card 1: Supplier / Activity Host Panel (Pale Mint Surface) -->
+          <div class="partner-promo-card partner-card-supplier">
+            <div class="partner-card-glow"></div>
+
+            <div class="partner-promo-img-wrap">
+              <img src="assets/images/promo_supplier.jpg" alt="Activity service provider host welcoming guests"
+                class="partner-promo-img" loading="lazy">
+              <span class="partner-img-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                </svg>
+                For Activity Hosts
+              </span>
+            </div>
+
+            <div class="partner-promo-content">
+              <span class="partner-promo-tag">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Host With Travel
+              </span>
+              <h3 class="partner-promo-title">
+                List Your Activity With Us
+              </h3>
+              <p class="partner-promo-desc">
+                Connect with thousands of travelers worldwide and boost your direct booking revenue.
+              </p>
+
+              <div class="partner-feature-pills">
+                <span class="partner-pill">✓ Zero Setup Fee</span>
+                <span class="partner-pill">✓ Instant Payouts</span>
+                <span class="partner-pill">✓ 24/7 Host Support</span>
+              </div>
+
+              <div>
+                <a href="#" data-route="becomeSupplier" class="partner-promo-btn">
+                  <span>Become a Service Provider</span>
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Travel Partner Panel (Dark Royal Navy Surface) -->
+          <div class="partner-promo-card partner-card-b2b">
+            <div class="partner-card-glow"></div>
+
+            <div class="partner-promo-img-wrap">
+              <img src="assets/images/promo_partner.jpg" alt="Travel agency business partners collaborating"
+                class="partner-promo-img" loading="lazy">
+              <span class="partner-img-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                </svg>
+                B2B Agency Network
+              </span>
+            </div>
+
+            <div class="partner-promo-content">
+              <span class="partner-promo-tag">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Partner Program
+              </span>
+              <h3 class="partner-promo-title">
+                Grow Your Travel Business With Us
+              </h3>
+              <p class="partner-promo-desc">
+                Access curated tours, activities, and private experiences at exclusive wholesale B2B partner rates.
+              </p>
+
+              <div class="partner-feature-pills">
+                <span class="partner-pill">✓ Wholesale Rates</span>
+                <span class="partner-pill">✓ Dedicated Manager</span>
+                <span class="partner-pill">✓ Bulk Booking API</span>
+              </div>
+
+              <div>
+                <a href="#" data-route="becomeTravelPartner" class="partner-promo-btn">
+                  <span>Become a Travel Partner</span>
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 15: MOBILE APP SHOWCASE ==================== -->
+    <section class="app-section-wrapper" aria-labelledby="app-heading">
+      <div class="site-container">
+        <div class="app-showcase-container">
+          <!-- Ambient Decorative Contours & Glows -->
+          <div class="app-contour-bg"></div>
+          <div class="app-ambient-blob-1"></div>
+          <div class="app-ambient-blob-2"></div>
+
+          <div class="app-showcase-grid">
+
+            <!-- Left: High-Converting Content & Feature Cards -->
+            <div class="app-content-col">
+              <div class="app-coming-badge">
+                <span class="app-live-dot"></span>
+                <span>TRAVEL APP &bull; COMING SOON</span>
+                <span class="app-badge-tag">VIP BETA</span>
+              </div>
+
+              <h2 id="app-heading" class="app-main-title">
+                The Entire World of Travel,<br>
+                <span class="app-gradient-text">Right in Your Pocket</span>
+              </h2>
+
+              <p class="app-main-desc">
+                Explore 10,000+ handpicked adventures, unlock instant offline boarding passes, and enjoy live GPS guide
+                radar &mdash; built for curious travelers who never stop discovering.
+              </p>
+
+              <!-- 3 Interactive Feature Cards -->
+              <div class="app-features-grid">
+                <!-- Card 1 -->
+                <div class="app-feat-card">
+                  <div class="app-feat-icon-wrap">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                  </div>
+                  <div class="app-feat-content">
+                    <h4 class="app-feat-title">Offline Boarding Passes &amp; QR Entry</h4>
+                    <p class="app-feat-text">100% paperless digital passes saved directly to Apple Wallet &amp; Google
+                      Pay without internet.</p>
+                  </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="app-feat-card">
+                  <div class="app-feat-icon-wrap">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div class="app-feat-content">
+                    <h4 class="app-feat-title">Live Guide &amp; Pickup Radar</h4>
+                    <p class="app-feat-text">Real-time driver GPS coordinates, meetup point navigation &amp; instant
+                      1-tap guide chat.</p>
+                  </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="app-feat-card">
+                  <div class="app-feat-icon-wrap">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div class="app-feat-content">
+                    <h4 class="app-feat-title">15% Launch Member Voucher</h4>
+                    <p class="app-feat-text">Early waitlist travelers get an automatic 15% discount applied on their
+                      first 3 mobile bookings.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- VIP Early Access Pre-Registration Box -->
+              <div class="app-vip-box">
+                <div class="app-vip-header">
+                  <div class="app-vip-title-group">
+                    <span class="app-vip-sparkle">✨</span>
+                    <span class="app-vip-title">Get VIP Early Access When We Launch</span>
+                  </div>
+                  <div class="app-vip-platforms">
+                    <span class="app-platform-pill" title="Apple iOS App (Coming Soon)">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.64-.78 1.08-1.86.96-2.95-1 .04-2.17.67-2.85 1.46-.59.68-1.11 1.77-.97 2.83 1.11.09 2.22-.56 2.86-1.34z" />
+                      </svg>
+                      iOS
+                    </span>
+                    <span class="app-platform-pill" title="Android Google Play (Coming Soon)">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          d="M3.609 1.814L13.792 12 3.61 22.186c-.307-.267-.487-.677-.487-1.168V2.982c0-.491.18-.901.486-1.168zm11.233 11.236l2.383 2.383-11.45 6.44 9.067-8.823zm2.383-4.083l-2.383 2.383-9.067-8.823 11.45 6.44zm1.186 2.042l3.208 1.805c.954.537.954 1.417 0 1.954l-3.208 1.805-2.091-2.092 2.091-2.072z" />
+                      </svg>
+                      Android
+                    </span>
+                  </div>
+                </div>
+
+                <form class="app-vip-form"
+                  onsubmit="event.preventDefault(); alert('🎉 Success! You have been added to the Travel Mobile App VIP Early Access waitlist. We will email your 15% launch voucher on launch day.');">
+                  <div class="app-vip-input-wrap">
+                    <svg class="app-vip-input-icon" width="18" height="18" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                    <input type="email" class="app-vip-input" placeholder="Enter your email for private beta invite..."
+                      required>
+                  </div>
+                  <button type="submit" class="app-vip-btn">
+                    <span>Notify Me</span>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                </form>
+
+                <div class="app-vip-footer">
+                  <div class="app-vip-avatars">
+                    <img src="assets/images/avatar_1.jpg" alt="Traveler" class="app-avatar-circle">
+                    <img src="assets/images/avatar_2.jpg" alt="Traveler" class="app-avatar-circle">
+                    <img src="assets/images/avatar_3.jpg" alt="Traveler" class="app-avatar-circle">
+                  </div>
+                  <span class="app-vip-social-proof"><strong>8,450+</strong> travelers already on the waitlist &bull; 🔒
+                    100% spam-free</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right: Realistic 3D Mobile App Mockup Showcase -->
+            <div class="app-mockup-stage">
+              <div class="app-mockup-halo"></div>
+
+              <!-- Floating Glass Micro-Cards Outside Screens -->
+              <div class="app-float-card app-card-top-right">
+                <div class="app-float-icon-box icon-mint">✓</div>
+                <div class="app-float-info">
+                  <span class="app-float-headline">Offline Pass Ready</span>
+                  <span class="app-float-sub">Desert Camel Safari</span>
+                </div>
+              </div>
+
+              <div class="app-float-card app-card-bottom-left">
+                <div class="app-float-icon-box icon-amber">★</div>
+                <div class="app-float-info">
+                  <span class="app-float-headline">4.9 Star Rating</span>
+                  <span class="app-float-sub">14,200+ Reviews Preview</span>
+                </div>
+              </div>
+
+              <div class="app-mockup-main-box">
+                <img src="assets/images/traval_app_mockup.png"
+                  alt="Travel Mobile App 3D Preview - Discover Tours & Instant Digital Passes" class="app-mockup-image"
+                  loading="lazy">
+                <div class="app-phone-ground-shadow"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 16: NEWSLETTER (TEMPORARILY COMMENTED OUT) ====================
+    <section class="newsletter-section-wrapper" aria-labelledby="newsletter-heading">
+      <div class="site-container">
+        <div class="newsletter-card">
+          <!- Background Ambient Glow & Patterns ->
+          <div class="newsletter-ambient-glow-1"></div>
+          <div class="newsletter-ambient-glow-2"></div>
+
+          <div class="newsletter-inner-grid">
+
+            <!- Left Content: Value Proposition & Perks ->
+            <div class="newsletter-content-col">
+              <div class="newsletter-badge">
+                <span>✈️</span>
+                <span>TRAVEL CLUB</span>
+                <span class="newsletter-badge-highlight">FREE ACCESS</span>
+              </div>
+
+              <h2 id="newsletter-heading" class="newsletter-title">
+                Get Travel Inspiration &amp;<br>
+                <span class="newsletter-gradient-text">Exclusive Member Offers</span>
+              </h2>
+
+              <p class="newsletter-subtitle">
+                Join 250,000+ smart explorers who receive curated weekend itineraries, secret flash deals, and
+                early-bird tour vouchers every Thursday.
+              </p>
+
+              <!- 3 Micro Value Pills ->
+              <div class="newsletter-perks-row">
+                <div class="newsletter-perk-item">
+                  <span class="newsletter-perk-check">✓</span>
+                  <span>Instant ₹1,000 Welcome Voucher</span>
+                </div>
+                <div class="newsletter-perk-item">
+                  <span class="newsletter-perk-check">✓</span>
+                  <span>Up to 35% Secret Flash Deals</span>
+                </div>
+                <div class="newsletter-perk-item">
+                  <span class="newsletter-perk-check">✓</span>
+                  <span>100% Free &bull; Zero Spam</span>
+                </div>
+              </div>
+            </div>
+
+            <!- Right: High-Converting Subscription Card ->
+            <div class="newsletter-form-col">
+              <div class="newsletter-form-card">
+
+                <div class="newsletter-form-header">
+                  <div class="newsletter-icon-circle">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div class="newsletter-form-title-group">
+                    <h3 class="newsletter-form-title">Subscribe to the Newsletter</h3>
+                    <span class="newsletter-form-desc">Get your welcome voucher in your inbox</span>
+                  </div>
+                </div>
+
+                <form id="newsletter-form" class="newsletter-form" novalidate>
+                  <div class="newsletter-input-wrap">
+                    <span class="newsletter-input-icon">
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                      </svg>
+                    </span>
+                    <input type="email" id="newsletter-email" placeholder="Enter your email address..." required
+                      class="newsletter-input">
+                  </div>
+                  <button type="submit" class="newsletter-submit-btn">
+                    <span>Subscribe Now</span>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                </form>
+                <span id="newsletter-feedback" class="hidden"></span>
+
+                <!- Trust Line below form ->
+                <div class="newsletter-trust-row">
+                  <div class="newsletter-trust-avatars">
+                    <img src="assets/images/avatar_1.jpg" alt="Subscriber" class="newsletter-avatar-img">
+                    <img src="assets/images/avatar_2.jpg" alt="Subscriber" class="newsletter-avatar-img">
+                    <img src="assets/images/avatar_3.jpg" alt="Subscriber" class="newsletter-avatar-img">
+                  </div>
+                  <span class="newsletter-trust-text">Join <strong>250,000+</strong> subscribers &bull; 🔒 1-click
+                    unsubscribe anytime</span>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+    ==================== END SECTION 16 ==================== -->
+
+  </main>
+
+  <!-- ==================== SECTION 17: FOOTER ==================== -->
+  <footer class="site-studio-footer" aria-label="Site Footer">
+    <!-- Giant Ambient Brand Watermark (Aigocy Style) -->
+    <div class="footer-watermark-text" aria-hidden="true">Travel</div>
+
+    <div class="site-container">
+
+      <!-- Top Connect Hero Section -->
+      <div class="footer-connect-wrap">
+        <!-- 3D Dark App Icon Badge -->
+        <div class="footer-app-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6F5EE" stroke-width="2.3"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+          </svg>
+        </div>
+
+        <h2 class="footer-connect-headline">
+          Get connected<br>with Travel on social
+        </h2>
+        <p class="footer-connect-subtitle">Don't miss our new updates &amp; secret travel deals!</p>
+
+        <!-- 3D Pill Cards Row (4 Centered Cards, Exactly Like Reference Image) -->
+        <div class="footer-pills-row">
+          <!-- Facebook -->
+          <a href="#" data-route="facebook" class="footer-3d-pill" aria-label="Facebook">
+            <span class="footer-pill-label">Facebook</span>
+            <div class="footer-pill-icon-knob">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.374 14.5 5 15.5 5H18V0h-3.808C10.595 0 9 1.583 9 4.615V8z" />
+              </svg>
+            </div>
+          </a>
+
+          <!-- Instagram -->
+          <a href="#" data-route="instagram" class="footer-3d-pill" aria-label="Instagram">
+            <span class="footer-pill-label">Instagram</span>
+            <div class="footer-pill-icon-knob">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+              </svg>
+            </div>
+          </a>
+
+          <!-- LinkedIn -->
+          <a href="#" data-route="linkedin" class="footer-3d-pill" aria-label="LinkedIn">
+            <span class="footer-pill-label">Linkedin</span>
+            <div class="footer-pill-icon-knob">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+              </svg>
+            </div>
+          </a>
+
+          <!-- YouTube -->
+          <a href="#" data-route="youtube" class="footer-3d-pill" aria-label="YouTube">
+            <span class="footer-pill-label">YouTube</span>
+            <div class="footer-pill-icon-knob">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+              </svg>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="footer-studio-divider"></div>
+
+      <!-- 5 Navigation Columns (Traval's Content Preserved) -->
+      <div class="footer-studio-grid">
+        <!-- 1. COMPANY -->
+        <div class="footer-studio-col">
+          <h3 class="footer-studio-col-title">Company</h3>
+          <ul class="footer-studio-links">
+            <li><a href="#" data-route="aboutUs">About Us</a></li>
+            <li><a href="#" data-route="careers">Careers</a></li>
+            <li><a href="#" data-route="contactUs">Contact Us</a></li>
+            <li><a href="#" data-route="blog">Blog</a></li>
+            <li><a href="#" data-route="pressAndMedia">Press and Media</a></li>
+          </ul>
+        </div>
+
+        <!-- 2. EXPLORE -->
+        <div class="footer-studio-col">
+          <h3 class="footer-studio-col-title">Explore</h3>
+          <ul class="footer-studio-links">
+            <li><a href="#" data-route="activities">Activities</a></li>
+            <li><a href="#" data-route="destinations">Destinations</a></li>
+            <li><a href="#" data-route="activities">Categories</a></li>
+            <li><a href="#" data-route="offers">Offers</a></li>
+            <li><a href="#" data-route="aiTripPlanner">AI Trip Planner</a></li>
+          </ul>
+        </div>
+
+        <!-- 3. PARTNERS -->
+        <div class="footer-studio-col">
+          <h3 class="footer-studio-col-title">Partners</h3>
+          <ul class="footer-studio-links">
+            <li><a href="#" data-route="becomeSupplier">Become a Supplier</a></li>
+            <li><a href="#" data-route="becomeTravelPartner">Become a Travel Partner</a></li>
+            <li><a href="#" data-route="corporateBookings">Corporate Bookings</a></li>
+            <li><a href="#" data-route="affiliateProgram">Affiliate Program</a></li>
+            <li><a href="#" data-route="apiIntegration">API Integration</a></li>
+          </ul>
+        </div>
+
+        <!-- 4. SUPPORT -->
+        <div class="footer-studio-col">
+          <h3 class="footer-studio-col-title">Support</h3>
+          <ul class="footer-studio-links">
+            <li><a href="#" data-route="helpCentre">Help Centre</a></li>
+            <li><a href="#" data-route="manageBooking">Manage Booking</a></li>
+            <li><a href="#" data-route="cancellationAndRefund">Cancellation &amp; Refund</a></li>
+            <li><a href="#" data-route="safetyAndTrust">Safety and Trust</a></li>
+            <li><a href="#" data-route="contactSupport">Contact Support</a></li>
+          </ul>
+        </div>
+
+        <!-- 5. LEGAL -->
+        <div class="footer-studio-col">
+          <h3 class="footer-studio-col-title">Legal</h3>
+          <ul class="footer-studio-links">
+            <li><a href="#" data-route="termsAndConditions">Terms &amp; Conditions</a></li>
+            <li><a href="#" data-route="privacyPolicy">Privacy Policy</a></li>
+            <li><a href="#" data-route="cookiePolicy">Cookie Policy</a></li>
+            <li><a href="#" data-route="cancellationAndRefund">Refund Policy</a></li>
+            <li><a href="#" data-route="userAgreement">User Agreement</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Legal Policy Bar -->
+      <div class="footer-studio-policy-bar">
+        <div class="footer-studio-policy-links">
+          <a href="#" data-route="cancellationAndRefund">Cancellation and Refund Policy</a>
+          <span class="footer-studio-sep">&bull;</span>
+          <a href="#" data-route="paymentPolicy">Payment Policy</a>
+          <span class="footer-studio-sep">&bull;</span>
+          <a href="#" data-route="supplierTerms">Supplier Terms and Conditions</a>
+          <span class="footer-studio-sep">&bull;</span>
+          <a href="#" data-route="travelPartnerTerms">Travel Partner Terms and Conditions</a>
+          <span class="footer-studio-sep">&bull;</span>
+          <a href="#" data-route="safetyDisclaimer">Safety Disclaimer</a>
+          <span class="footer-studio-sep">&bull;</span>
+          <a href="#" data-route="intellectualProperty">Intellectual Property Policy</a>
+          <span class="footer-studio-sep">&bull;</span>
+          <a href="#" data-route="grievanceRedressal">Grievance Redressal Policy</a>
+          <span class="footer-studio-sep">&bull;</span>
+          <a href="#" data-route="dataProtection">Data Protection Policy</a>
+        </div>
+      </div>
+
+      <!-- Bottom Bar: Underlined Quick Links, Copyright, Payments, Back to Top -->
+      <div class="footer-studio-bottom">
+        <!-- Quick Nav Underlined Links (Like in reference) -->
+        <div class="footer-studio-underlined-links">
+          <a href="#" data-route="aboutUs">About</a>
+          <a href="#" data-route="activities">Services</a>
+          <a href="#" data-route="destinations">Works</a>
+          <a href="#" data-route="contactUs">Contact</a>
+        </div>
+
+        <!-- Copyright -->
+        <p class="footer-studio-copyright">
+          &copy; 2026 Travel. All Rights Reserved.
+        </p>
+
+        <!-- Payment Badges & Back to Top -->
+        <div class="footer-studio-bottom-right">
+          <div class="footer-studio-payments">
+            <img src="assets/icons/payment/visa.svg" alt="Visa accepted" class="footer-studio-pay-icon">
+            <img src="assets/icons/payment/mastercard.svg" alt="Mastercard accepted" class="footer-studio-pay-icon">
+            <img src="assets/icons/payment/upi.svg" alt="UPI accepted" class="footer-studio-pay-icon">
+            <img src="assets/icons/payment/razorpay.svg" alt="Razorpay gateway" class="footer-studio-pay-icon">
+            <div class="footer-studio-ssl-badge">
+              <img src="assets/icons/payment/ssl-lock.svg" alt="" class="footer-studio-ssl-icon">
+              <span>SSL Secure</span>
+            </div>
+          </div>
+
+          <!-- Back to Top Link (Like in reference) -->
+          <button type="button" class="footer-studio-back-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'});"
+            aria-label="Back to top">
+            Back to top <span>&uarr;</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ==================== TRAVEL AI CHATBOT WIDGET ==================== -->
+  <!-- Floating Launcher Button with 3D Mascot Icon -->
+  <div id="traval-chat-launcher" class="traval-chat-launcher" aria-label="Open AI Travel Assistant">
+    <div id="traval-chat-hint" class="traval-chat-bubble-hint">
+      <span>👋 Hi! Need help planning your trip?</span>
+      <span id="traval-hint-close" class="hint-close" title="Dismiss">&times;</span>
+    </div>
+    <div class="traval-chat-btn">
+      <img src="assets/images/traval_bot_head.png" alt="Travel AI Bot Mascot" class="traval-chat-mascot-img">
+      <span class="traval-chat-status-dot" title="AI Assistant Online"></span>
+    </div>
+  </div>
+
+  <!-- Interactive Chat Window Modal -->
+  <div id="traval-chat-window" class="traval-chat-window" role="dialog" aria-modal="true"
+    aria-labelledby="chat-bot-title">
+    <!-- Header -->
+    <div class="traval-chat-header">
+      <div class="traval-chat-header-info">
+        <div class="traval-chat-avatar-wrap">
+          <img src="assets/images/traval_bot_head.png" alt="TravelBot" class="traval-chat-header-avatar">
+          <span class="traval-chat-online-badge"></span>
+        </div>
+        <div class="traval-chat-header-text">
+          <div id="chat-bot-title" class="traval-chat-header-title">
+            <span>Travel AI Concierge</span>
+            <span>✨</span>
+          </div>
+          <span class="traval-chat-header-status">
+            <span class="traval-chat-header-status-dot"></span>
+            Online &bull; Replies Instantly
+          </span>
+        </div>
+      </div>
+      <div class="traval-chat-header-actions">
+        <button type="button" id="traval-chat-reset" class="traval-chat-action-btn" title="Reset Chat"
+          aria-label="Reset Chat">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+        <button type="button" id="traval-chat-close" class="traval-chat-action-btn" title="Close Chat"
+          aria-label="Close Chat">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Thread -->
+    <div id="traval-chat-messages" class="traval-chat-body">
+      <div class="traval-chat-time-tag">Today</div>
+
+      <!-- Welcome Message from Bot -->
+      <div class="chat-msg-row bot">
+        <div class="chat-msg-avatar">
+          <img src="assets/images/traval_bot_head.png" alt="TravelBot">
+        </div>
+        <div class="chat-msg-bubble">
+          👋 <strong>Hi adventurer!</strong> I'm TravelBot, your 24/7 AI Travel Assistant.<br><br>
+          I can help you explore top activities, get instant itineraries, or unlock secret discounts. How can I assist
+          today?
+
+          <div class="chat-quick-suggestions">
+            <button type="button" class="chat-chip-btn" data-query="Top Recommended Tours">🗺️ Top Tours</button>
+            <button type="button" class="chat-chip-btn" data-query="Unlock 15% Discount Code">🏷️ 15% Discount</button>
+            <button type="button" class="chat-chip-btn" data-query="How to Book Activities">🎟️ How to Book</button>
+            <button type="button" class="chat-chip-btn" data-query="Talk to Human Support">📞 Human Agent</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Input Bar -->
+    <div class="traval-chat-footer">
+      <div class="traval-chat-input-row">
+        <input type="text" id="traval-chat-input" class="traval-chat-input"
+          placeholder="Ask anything about tours, bookings..." autocomplete="off">
+        <button type="button" id="traval-chat-send" class="traval-chat-send-btn" aria-label="Send message">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
+      </div>
+      <p class="traval-chat-powered">⚡ Powered by Travel AI Engine &bull; Instant 24/7 Support</p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/chatbot.js"></script>
