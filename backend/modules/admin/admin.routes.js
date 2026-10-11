@@ -26,7 +26,12 @@ router.put('/suppliers/:id/documents/:docId/verify', requirePermission('supplier
 // Reports (Accountant, Finance, Admin)
 router.get('/reports/revenue', requirePermission('report.revenue'), adminController.getRevenueReportOverview);
 
-// Audit Logs (Site Admin)
-router.get('/audit-logs', requireRole('site_admin'), adminController.listAuditLogs);
+// Custom Taxonomy Review (Section 3.3 & 3.4)
+router.get('/custom-taxonomy', requireRole('site_admin'), adminController.getCustomTaxonomy);
+router.put('/custom-taxonomy/sub/:id/review', requireRole('site_admin'), adminController.reviewCustomSubcategory);
+
+// Supplier Suspension & Booking Reassignment (Section 26.1)
+router.get('/suppliers/:id/affected-bookings', requireRole('site_admin'), adminController.getSupplierAffectedBookings);
+router.post('/suppliers/:id/reassign-booking', requireRole('site_admin'), adminController.reassignSupplierBooking);
 
 module.exports = router;

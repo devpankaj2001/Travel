@@ -21,4 +21,16 @@ router.delete('/documents/:id', suppliersController.deleteDocument);
 router.get('/esign', suppliersController.getEsignAgreement);
 router.post('/esign/sign', suppliersController.signEsignAgreement);
 
+// Catalog Browsing & Activity Association (Section 12 & 13)
+router.get('/catalog', suppliersController.getCatalogActivities);
+router.post('/catalog/associate', suppliersController.associateActivity);
+
+// Supplier Activities & Creation (Section 14 & 15)
+router.get('/my-activities', suppliersController.getMyActivities);
+router.post('/activities', suppliersController.createSupplierActivity);
+
+// Custom Taxonomy & Commission (Section 3.3 & 18)
+router.post('/custom-subcategory', suppliersController.submitCustomSubcategory);
+router.put('/commission', suppliersController.updateSupplierCommission);
+
 module.exports = router;

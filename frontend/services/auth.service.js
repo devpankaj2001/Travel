@@ -88,6 +88,35 @@ export const authService = {
     return apiRequest('/activities/categories', { method: 'GET' });
   },
 
+  async getTaxonomy() {
+    return apiRequest('/activities/taxonomy', { method: 'GET' });
+  },
+
+  async getSupplierCatalog(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/suppliers/catalog${query ? `?${query}` : ''}`, { method: 'GET' });
+  },
+
+  async associateSupplierActivity(data) {
+    return apiRequest('/suppliers/catalog/associate', { method: 'POST', body: data });
+  },
+
+  async getSupplierMyActivities() {
+    return apiRequest('/suppliers/my-activities', { method: 'GET' });
+  },
+
+  async createSupplierActivity(data) {
+    return apiRequest('/suppliers/activities', { method: 'POST', body: data });
+  },
+
+  async submitCustomSubcategory(data) {
+    return apiRequest('/suppliers/custom-subcategory', { method: 'POST', body: data });
+  },
+
+  async updateSupplierCommission(data) {
+    return apiRequest('/suppliers/commission', { method: 'PUT', body: data });
+  },
+
   // -----------------------------------------------------------
   // Admin Auth (Site Admin, Site Accountant, Finance)
   // -----------------------------------------------------------
@@ -229,6 +258,22 @@ export const authService = {
 
   async getRevenueReport() {
     return apiRequest('/admin/reports/revenue');
+  },
+
+  async getAdminCustomTaxonomy() {
+    return apiRequest('/admin/custom-taxonomy', { method: 'GET' });
+  },
+
+  async reviewAdminCustomSubcategory(id, data) {
+    return apiRequest(`/admin/custom-taxonomy/sub/${id}/review`, { method: 'PUT', body: data });
+  },
+
+  async getAdminSupplierAffectedBookings(supplierId) {
+    return apiRequest(`/admin/suppliers/${supplierId}/affected-bookings`, { method: 'GET' });
+  },
+
+  async reassignAdminSupplierBooking(supplierId, data) {
+    return apiRequest(`/admin/suppliers/${supplierId}/reassign-booking`, { method: 'POST', body: data });
   },
 
   async getAuditLogs(params = {}) {

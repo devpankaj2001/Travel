@@ -711,6 +711,349 @@ const signEsignAgreement = async (req, res, next) => {
   }
 };
 
+/**
+ * Search & Browse Existing Catalog Activities (Section 12 & 13)
+ * GET /api/v1/suppliers/catalog
+ */
+const getCatalogActivities = async (req, res, next) => {
+  try {
+    const { search, category, city, limit = 50, page = 1 } = req.query;
+    const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const conditions = ['a.status = "active"'];
+    const params = [];
+
+    if (search && search.trim()) {
+      const term = `%${search.trim()}%`;
+      conditions.push('(a.title LIKE ? OR a.description LIKE ? OR a.city LIKE ? OR a.category LIKE ?)');
+      params.push(term, term, term, term);
+    }
+    if (city && city.trim() && city.toLowerCase() !== 'all') {
+      conditions.push('LOWER(a.city) = LOWER(?)');
+      params.push(city.trim());
+    }
+    if (category && category.trim() && category.toLowerCase() !== 'all') {
+      conditions.push('LOWER(a.category) = LOWER(?)');
+      params.push(category.trim());
+    }
+
+    const countSql = `SELECT COUNT(*) AS total FROM activities a WHERE ${conditions.join(' AND ')}`;
+    const [countRow] = await query(countSql, params);
+
+    const sql = `
+      SELECT a.id, a.title, a.slug, a.category, a.city, a.country, a.duration_minutes,
+             COALESCE((SELECT url FROM activity_media WHERE activity_id = a.id AND is_primary = 1 LIMIT 1),
+                      (SELECT url FROM activity_media WHERE activity_id = a.id LIMIT 1),
+                      '/assets/images/dest_jaipur.jpg') AS image_url,
+             COALESCE((SELECT price FROM activity_pricing WHERE activity_id = a.id LIMIT 1), 2999) AS reference_price
+      FROM activities a
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY a.id DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const activities = await query(sql, [...params, parseInt(limit, 10), parseInt(offset, 10)]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        total: countRow.total,
+        page: parseInt(page, 10),
+        activities
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Associate / Tag Supplier with Existing Activity (Section 12, 13, 16, 17)
+ * POST /api/v1/suppliers/catalog/associate
+ */
+const associateActivity = async (req, res, next) => {
+  try {
+    const suppliers = await query('SELECT id, status FROM suppliers WHERE user_id = ?', [req.user.id]);
+    if (suppliers.length === 0) {
+      return res.status(404).json({ success: false, message: 'Supplier profile not found' });
+    }
+    const supplier = suppliers[0];
+
+    const {
+      activity_id,
+      supplier_price,
+      customer_price,
+      b2b_price,
+      currency = 'INR',
+      pricing_model = 'percentage',
+      commission_rate = 15.00,
+      fixed_commission = 0.00
+    } = req.body;
+
+    if (!activity_id) {
+      return res.status(400).json({ success: false, message: 'Activity ID is required' });
+    }
+
+    // Check activity exists
+    const actRows = await query('SELECT id, title FROM activities WHERE id = ?', [activity_id]);
+    if (actRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Target activity not found in catalog' });
+    }
+
+    // Insert or update association in supplier_activities
+    await query(
+      `INSERT INTO supplier_activities 
+        (supplier_id, activity_id, supplier_price, customer_price, b2b_price, currency, pricing_model, commission_rate, fixed_commission, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval')
+       ON DUPLICATE KEY UPDATE
+        supplier_price = VALUES(supplier_price),
+        customer_price = VALUES(customer_price),
+        b2b_price = VALUES(b2b_price),
+        currency = VALUES(currency),
+        pricing_model = VALUES(pricing_model),
+        commission_rate = VALUES(commission_rate),
+        fixed_commission = VALUES(fixed_commission),
+        status = 'pending_approval';`,
+      [
+        supplier.id,
+        activity_id,
+        Number(supplier_price || 0),
+        Number(customer_price || 0),
+        Number(b2b_price || 0),
+        currency,
+        pricing_model,
+        Number(commission_rate || 15.00),
+        Number(fixed_commission || 0)
+      ]
+    );
+
+    await recordAuditLog({
+      actorId: req.user.id,
+      entityType: 'supplier_activities',
+      entityId: activity_id,
+      action: 'ASSOCIATE_ACTIVITY',
+      newValue: req.body,
+      reason: `Supplier tagged existing activity: ${actRows[0].title}`,
+      req
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully tagged "${actRows[0].title}". Rate list and association submitted for Admin review.`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get Supplier's Associated & Created Activities
+ * GET /api/v1/suppliers/my-activities
+ */
+const getMyActivities = async (req, res, next) => {
+  try {
+    const suppliers = await query('SELECT id FROM suppliers WHERE user_id = ?', [req.user.id]);
+    if (suppliers.length === 0) {
+      return res.status(404).json({ success: false, message: 'Supplier profile not found' });
+    }
+    const supplierId = suppliers[0].id;
+
+    // Associated catalog activities
+    const tagged = await query(
+      `SELECT sa.id AS association_id, sa.activity_id, sa.supplier_price, sa.customer_price, sa.b2b_price,
+              sa.currency, sa.pricing_model, sa.commission_rate, sa.fixed_commission, sa.status AS association_status,
+              a.title, a.slug, a.category, a.city, a.country, a.duration_minutes,
+              COALESCE((SELECT url FROM activity_media WHERE activity_id = a.id AND is_primary = 1 LIMIT 1),
+                       (SELECT url FROM activity_media WHERE activity_id = a.id LIMIT 1),
+                       '/assets/images/dest_jaipur.jpg') AS image_url
+       FROM supplier_activities sa
+       JOIN activities a ON sa.activity_id = a.id
+       WHERE sa.supplier_id = ?
+       ORDER BY sa.id DESC`,
+      [supplierId]
+    );
+
+    // Activities originally created by this supplier
+    const created = await query(
+      `SELECT a.id, a.title, a.slug, a.category, a.city, a.country, a.duration_minutes, a.status,
+              COALESCE((SELECT url FROM activity_media WHERE activity_id = a.id AND is_primary = 1 LIMIT 1),
+                       (SELECT url FROM activity_media WHERE activity_id = a.id LIMIT 1),
+                       '/assets/images/dest_jaipur.jpg') AS image_url,
+              COALESCE((SELECT price FROM activity_pricing WHERE activity_id = a.id LIMIT 1), 2999) AS price
+       FROM activities a
+       WHERE a.supplier_id = ?
+       ORDER BY a.id DESC`,
+      [supplierId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        taggedActivities: tagged,
+        createdActivities: created
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Create New Activity (Section 14 & 15)
+ * Submitted with status 'pending_approval' for Admin Review
+ * POST /api/v1/suppliers/activities
+ */
+const createSupplierActivity = async (req, res, next) => {
+  try {
+    const suppliers = await query('SELECT id, status FROM suppliers WHERE user_id = ?', [req.user.id]);
+    if (suppliers.length === 0) {
+      return res.status(404).json({ success: false, message: 'Supplier profile not found' });
+    }
+    const supplier = suppliers[0];
+
+    const {
+      title,
+      category,
+      city,
+      country = 'India',
+      description,
+      duration_minutes = 60,
+      supplier_price,
+      customer_price,
+      b2b_price,
+      currency = 'INR',
+      pricing_model = 'percentage',
+      commission_rate = 15.00
+    } = req.body;
+
+    if (!title || !category || !city) {
+      return res.status(400).json({ success: false, message: 'Title, category, and city are required' });
+    }
+
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now();
+
+    const result = await query(
+      `INSERT INTO activities (supplier_id, title, slug, category, city, country, description, duration_minutes, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval')`,
+      [supplier.id, title, slug, category, city, country, description || '', duration_minutes]
+    );
+
+    const activityId = result.insertId;
+
+    // Insert into supplier_activities association as well
+    if (customer_price || supplier_price) {
+      await query(
+        `INSERT INTO supplier_activities 
+          (supplier_id, activity_id, supplier_price, customer_price, b2b_price, currency, pricing_model, commission_rate, status, is_primary)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending_approval', 1)`,
+        [
+          supplier.id,
+          activityId,
+          Number(supplier_price || 0),
+          Number(customer_price || 0),
+          Number(b2b_price || 0),
+          currency,
+          pricing_model,
+          Number(commission_rate || 15.00)
+        ]
+      );
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'New activity submitted successfully! Status is "Pending Admin Review".',
+      data: {
+        activityId,
+        slug,
+        status: 'pending_approval'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Submit Custom Sub-Category Name under a Main Category (Section 3.3)
+ * POST /api/v1/suppliers/custom-subcategory
+ */
+const submitCustomSubcategory = async (req, res, next) => {
+  try {
+    const suppliers = await query('SELECT id FROM suppliers WHERE user_id = ?', [req.user.id]);
+    if (suppliers.length === 0) {
+      return res.status(404).json({ success: false, message: 'Supplier profile not found' });
+    }
+    const supplierId = suppliers[0].id;
+
+    const { main_category_id, name } = req.body;
+    if (!main_category_id || !name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Main Category ID and Custom Sub-Category Name are required' });
+    }
+
+    const trimmedName = name.trim();
+
+    // Check duplicate
+    const existing = await query(
+      'SELECT id FROM supplier_custom_subcategories WHERE supplier_id = ? AND main_category_id = ? AND LOWER(name) = LOWER(?)',
+      [supplierId, main_category_id, trimmedName]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: 'You have already submitted this custom sub-category name.' });
+    }
+
+    const result = await query(
+      `INSERT INTO supplier_custom_subcategories (supplier_id, main_category_id, name, status)
+       VALUES (?, ?, ?, 'pending_review')`,
+      [supplierId, main_category_id, trimmedName]
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Custom sub-category submitted for Admin review.',
+      data: {
+        id: result.insertId,
+        name: trimmedName,
+        status: 'pending_review'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update Supplier Commission Arrangement (Section 18)
+ * PUT /api/v1/suppliers/commission
+ */
+const updateSupplierCommission = async (req, res, next) => {
+  try {
+    const suppliers = await query('SELECT id FROM suppliers WHERE user_id = ?', [req.user.id]);
+    if (suppliers.length === 0) {
+      return res.status(404).json({ success: false, message: 'Supplier profile not found' });
+    }
+    const supplierId = suppliers[0].id;
+
+    const { commission_model = 'percentage', commission_rate = 15.00 } = req.body;
+
+    await query(
+      `UPDATE suppliers SET commission_model = ?, commission_rate = ? WHERE id = ?`,
+      [commission_model, Number(commission_rate), supplierId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Commission settings updated successfully.',
+      data: {
+        commission_model,
+        commission_rate
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getSupplierProfile,
   updateSupplierProfile,
@@ -719,5 +1062,11 @@ module.exports = {
   deleteDocument,
   submitForVerification,
   getEsignAgreement,
-  signEsignAgreement
+  signEsignAgreement,
+  getCatalogActivities,
+  associateActivity,
+  getMyActivities,
+  createSupplierActivity,
+  submitCustomSubcategory,
+  updateSupplierCommission
 };

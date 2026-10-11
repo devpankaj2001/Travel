@@ -27,6 +27,60 @@ router.get('/locations', async (req, res, next) => {
 });
 
 // -------------------------------------------------------------
+// -------------------------------------------------------------
+// 1.1 Five Main Categories & Hierarchical Taxonomy (Section 3.1)
+// -------------------------------------------------------------
+router.get('/taxonomy', async (req, res, next) => {
+  try {
+    const mainCats = await query(
+      `SELECT id, name, slug, description, icon_name, display_order 
+       FROM main_categories 
+       WHERE is_active = 1 
+       ORDER BY display_order ASC`
+    );
+
+    const subCats = await query(
+      `SELECT id, main_category_id, name, slug, is_other, display_order 
+       FROM sub_categories 
+       WHERE is_active = 1 
+       ORDER BY display_order ASC`
+    );
+
+    const addOns = await query(
+      `SELECT id, name, slug, description, display_order 
+       FROM add_on_services 
+       WHERE is_active = 1 
+       ORDER BY display_order ASC`
+    );
+
+    const taxonomy = mainCats.map(mc => ({
+      ...mc,
+      subcategories: subCats
+        .filter(sc => sc.main_category_id === mc.id)
+        .map(sc => ({
+          id: sc.id,
+          name: sc.name,
+          slug: sc.slug,
+          is_other: Boolean(sc.is_other)
+        }))
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        categories: taxonomy,
+        addOns: addOns.map(ao => ({
+          id: ao.id,
+          name: ao.name,
+          slug: ao.slug
+        }))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // 2. All Categories Listing (with Subcategories)
 // -------------------------------------------------------------
 router.get('/categories', async (req, res, next) => {

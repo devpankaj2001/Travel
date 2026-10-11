@@ -514,7 +514,10 @@ const customerLogin = async (req, res, next) => {
 const supplierSignup = async (req, res, next) => {
   try {
     const {
+      account_type = 'corporate', // 'individual' | 'corporate'
       company_name,
+      legal_name,
+      display_name,
       first_name,
       last_name,
       owner_name,
@@ -524,14 +527,22 @@ const supplierSignup = async (req, res, next) => {
       phone,
       business_type,
       website,
+      // Multi-category & Service Arrays
+      main_categories = [],
+      sub_categories = [],
+      custom_subcategories = [],
+      services = [],
+      custom_services = [],
+      add_ons = [],
       main_category,
       sub_category,
-      services,
       description,
       documents,
       trade_license_no,
       tax_id,
+      pan_number,
       business_address,
+      residential_address,
       city,
       country = config.business.defaultCountry
     } = req.body;
@@ -543,10 +554,10 @@ const supplierSignup = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
 
-    // Determine first and last name from owner_name / contact_person if not explicitly provided
+    // Determine first and last name from legal_name / owner_name / contact_person
     let finalFirstName = (first_name || '').trim();
     let finalLastName = (last_name || '').trim();
-    const compositeName = (owner_name || contact_person || '').trim();
+    const compositeName = (legal_name || owner_name || contact_person || '').trim();
     if (!finalFirstName && compositeName) {
       const parts = compositeName.split(' ');
       finalFirstName = parts[0] || 'Supplier';
@@ -554,6 +565,13 @@ const supplierSignup = async (req, res, next) => {
     }
     if (!finalFirstName) finalFirstName = 'Supplier';
     if (!finalLastName) finalLastName = 'Partner';
+
+    // Validation by account type
+    const isIndividual = account_type === 'individual';
+    let finalCompanyName = company_name ? company_name.trim() : null;
+    if (isIndividual && !finalCompanyName) {
+      finalCompanyName = display_name ? display_name.trim() : `${finalFirstName} ${finalLastName}`;
+    }
 
     // Check if user email already exists in users table
     const existing = await query('SELECT id FROM users WHERE email = ?', [cleanEmail]);
@@ -574,26 +592,41 @@ const supplierSignup = async (req, res, next) => {
     const salt = await bcrypt.genSalt(config.security.bcryptSaltRounds);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Prepare pending registration data - User and Supplier are NOT inserted into database until valid OTP is entered!
+    // Normalize categories arrays
+    let finalMainCats = Array.isArray(main_categories) ? main_categories : [];
+    if (finalMainCats.length === 0 && main_category) finalMainCats = [main_category];
+
+    let finalSubCats = Array.isArray(sub_categories) ? sub_categories : [];
+    if (finalSubCats.length === 0 && sub_category) finalSubCats = [sub_category];
+
     const registrationData = {
       role: 'supplier',
       supplierRoleId,
-      company_name: (company_name || '').trim(),
+      account_type: isIndividual ? 'individual' : 'corporate',
+      company_name: finalCompanyName,
+      legal_name: (legal_name || `${finalFirstName} ${finalLastName}`).trim(),
+      display_name: display_name ? display_name.trim() : null,
       first_name: finalFirstName,
       last_name: finalLastName,
       email: cleanEmail,
       passwordHash,
       phone: cleanPhone,
-      business_type: business_type || null,
+      business_type: isIndividual ? 'Individual Proprietorship' : (business_type || 'Private Limited'),
       website: website || null,
-      main_category: main_category || null,
-      sub_category: sub_category || null,
-      services: services || [],
+      main_categories: finalMainCats,
+      sub_categories: finalSubCats,
+      custom_subcategories: Array.isArray(custom_subcategories) ? custom_subcategories : [],
+      services: Array.isArray(services) ? services : [],
+      custom_services: Array.isArray(custom_services) ? custom_services : [],
+      add_ons: Array.isArray(add_ons) ? add_ons : [],
+      main_category: finalMainCats[0] || 'Attractions',
+      sub_category: finalSubCats[0] || 'Tours',
       description: description || null,
       documents: Array.isArray(documents) ? documents : [],
       trade_license_no: trade_license_no || null,
-      tax_id: tax_id || null,
+      tax_id: tax_id || pan_number || null,
       business_address: business_address || null,
+      residential_address: residential_address || null,
       city: city || null,
       country
     };
@@ -620,7 +653,7 @@ const supplierSignup = async (req, res, next) => {
       action: 'SUPPLIER_SIGNUP_OTP_DISPATCHED',
       entityType: 'otps',
       entityId: otpResult.otpId,
-      description: `Supplier registration initiated (pending OTP verification, user not yet inserted): ${company_name} (${cleanEmail})`,
+      description: `Supplier registration initiated (${registrationData.account_type}): ${registrationData.company_name} (${cleanEmail})`,
       req
     });
 
@@ -628,12 +661,13 @@ const supplierSignup = async (req, res, next) => {
       success: true,
       message: 'Supplier registration initiated. Please verify your OTP to complete registration and create your account.',
       data: {
-        company_name,
+        account_type: registrationData.account_type,
+        company_name: registrationData.company_name,
         email: registrationData.email,
         phone: registrationData.phone,
         status: 'pending_verification',
         verification: {
-          otpCode: commonOtp // Provided for test simulation
+          otpCode: commonOtp
         }
       }
     });
@@ -706,39 +740,95 @@ const supplierVerifyOtp = async (req, res, next) => {
       if (existing.length === 0) {
         const userRes = await query(
           `INSERT INTO users (role_id, first_name, last_name, email, password_hash, phone, account_type, customer_segment, status, email_verified_at, phone_verified_at)
-           VALUES (?, ?, ?, ?, ?, ?, 'organization', 'retail', 'active', NOW(), NOW())`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, 'retail', 'active', NOW(), NOW())`,
           [
             payload.supplierRoleId,
             payload.first_name,
             payload.last_name,
             payload.email,
             payload.passwordHash,
-            payload.phone
+            payload.phone,
+            payload.account_type || 'corporate'
           ]
         );
         userId = userRes.insertId;
 
         const suppRes = await query(
-          `INSERT INTO suppliers (user_id, company_name, trade_license_no, tax_id, contact_person, business_address, city, country, business_type, website, main_category, sub_category, services, description, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'under_review')`,
+          `INSERT INTO suppliers (user_id, account_type, company_name, legal_name, display_name, trade_license_no, tax_id, contact_person, business_address, residential_address, city, country, business_type, website, main_category, sub_category, services, description, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'under_review')`,
           [
             userId,
+            payload.account_type || 'corporate',
             payload.company_name,
-            payload.trade_license_no,
-            payload.tax_id,
+            payload.legal_name || `${payload.first_name} ${payload.last_name}`.trim(),
+            payload.display_name || null,
+            payload.trade_license_no || null,
+            payload.tax_id || null,
             `${payload.first_name} ${payload.last_name}`.trim(),
-            payload.business_address,
-            payload.city,
+            payload.business_address || null,
+            payload.residential_address || null,
+            payload.city || null,
             payload.country,
-            payload.business_type,
-            payload.website,
-            payload.main_category,
-            payload.sub_category,
+            payload.business_type || null,
+            payload.website || null,
+            payload.main_category || null,
+            payload.sub_category || null,
             payload.services ? JSON.stringify(payload.services) : null,
-            payload.description
+            payload.description || null
           ]
         );
         supplierId = suppRes.insertId;
+
+        // Persist Category Mappings (Section 3.2)
+        if (Array.isArray(payload.main_categories)) {
+          for (const mSlug of payload.main_categories) {
+            const mRows = await query('SELECT id FROM main_categories WHERE slug = ? OR name = ?', [mSlug, mSlug]);
+            if (mRows.length > 0) {
+              const mainId = mRows[0].id;
+              // Link subcategories under this main category if matched
+              if (Array.isArray(payload.sub_categories)) {
+                for (const sName of payload.sub_categories) {
+                  const sRows = await query('SELECT id FROM sub_categories WHERE main_category_id = ? AND (slug = ? OR name = ?)', [mainId, sName, sName]);
+                  if (sRows.length > 0) {
+                    await query(
+                      `INSERT INTO supplier_category_mappings (supplier_id, main_category_id, sub_category_id)
+                       VALUES (?, ?, ?)`,
+                      [supplierId, mainId, sRows[0].id]
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Persist Custom Sub-Categories (Section 3.3)
+        if (Array.isArray(payload.custom_subcategories)) {
+          for (const customItem of payload.custom_subcategories) {
+            const customName = typeof customItem === 'string' ? customItem : customItem.name;
+            const mainCatId = typeof customItem === 'object' && customItem.main_category_id ? customItem.main_category_id : 1;
+            if (customName && customName.trim()) {
+              await query(
+                `INSERT INTO supplier_custom_subcategories (supplier_id, main_category_id, name, status)
+                 VALUES (?, ?, ?, 'pending_review')`,
+                [supplierId, mainCatId, customName.trim()]
+              );
+            }
+          }
+        }
+
+        // Persist Custom Services (Section 3.4)
+        if (Array.isArray(payload.custom_services)) {
+          for (const servName of payload.custom_services) {
+            if (servName && servName.trim()) {
+              await query(
+                `INSERT INTO supplier_custom_services (supplier_id, service_name, status)
+                 VALUES (?, ?, 'pending_review')`,
+                [supplierId, servName.trim()]
+              );
+            }
+          }
+        }
 
         // Persist uploaded documents into supplier_documents table
         if (payload.documents && Array.isArray(payload.documents)) {
@@ -757,7 +847,7 @@ const supplierVerifyOtp = async (req, res, next) => {
         await query(
           `INSERT INTO supplier_profiles (user_id, company_name, legal_name, business_reg_no, tax_id, contact_person, contact_email, contact_phone, city, country, status)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'under_verification')`,
-          [userId, payload.company_name, payload.company_name, payload.trade_license_no, payload.tax_id, `${payload.first_name} ${payload.last_name}`.trim(), payload.email, payload.phone, payload.city, payload.country]
+          [userId, payload.company_name, payload.legal_name || payload.company_name, payload.trade_license_no, payload.tax_id, `${payload.first_name} ${payload.last_name}`.trim(), payload.email, payload.phone, payload.city, payload.country]
         );
 
         await query(
@@ -765,6 +855,21 @@ const supplierVerifyOtp = async (req, res, next) => {
            VALUES (?, 'otp', 'verified', ?, NOW(), NOW())`,
           [supplierId, code]
         );
+
+        // Section 7: In-System Notification for Admin & Super Admin
+        const adminUsers = await query(
+          `SELECT u.id, u.email FROM users u JOIN roles r ON u.role_id = r.id WHERE r.slug IN ('admin', 'site_admin')`
+        );
+        for (const admin of adminUsers) {
+          await query(
+            `INSERT INTO notifications (user_id, title, message, type)
+             VALUES (?, 'New Supplier Registration', ?, 'supplier_registration')`,
+            [
+              admin.id,
+              `New Supplier Registration – ${payload.company_name} (${payload.account_type === 'individual' ? 'Individual Person' : 'Registered Corporate Entity'}) is waiting for verification.`
+            ]
+          );
+        }
       } else {
         userId = existing[0].id;
         const suppRows = await query('SELECT id FROM suppliers WHERE user_id = ?', [userId]);

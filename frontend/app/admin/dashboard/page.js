@@ -30,7 +30,14 @@ import {
   Download,
   ExternalLink,
   Check,
-  X
+  X,
+  Tag,
+  Briefcase,
+  User,
+  AlertTriangle,
+  RotateCcw,
+  SlidersHorizontal,
+  BadgeAlert
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -46,6 +53,23 @@ export default function AdminDashboardPage() {
   const [permissions, setPermissions] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Custom taxonomy state
+  const [customTaxonomy, setCustomTaxonomy] = useState({ customSubcategories: [], customServices: [] });
+  const [reviewingTaxId, setReviewingTaxId] = useState(null);
+
+  // Supplier Lifecycle / Docs Required / Suspended state
+  const [statusModalSupplier, setStatusModalSupplier] = useState(null);
+  const [statusTarget, setStatusTarget] = useState('documents_required');
+  const [statusNotes, setStatusNotes] = useState('');
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  // Suspended supplier affected bookings
+  const [affectedModalSupplier, setAffectedModalSupplier] = useState(null);
+  const [affectedData, setAffectedData] = useState({ bookings: [], replacementSuppliers: [] });
+  const [loadingAffected, setLoadingAffected] = useState(false);
+  const [reassignSupplierId, setReassignSupplierId] = useState({});
+  const [reassignLoadingId, setReassignLoadingId] = useState(null);
 
   // Search filter
   const [userSearch, setUserSearch] = useState('');
@@ -107,6 +131,15 @@ export default function AdminDashboardPage() {
       if (hasPermission('supplier.view')) {
         const suppRes = await authService.getAdminSuppliers();
         if (suppRes.success && suppRes.data?.suppliers) setSuppliers(suppRes.data.suppliers);
+
+        try {
+          const taxRes = await authService.getAdminCustomTaxonomy();
+          if (taxRes.success && taxRes.data) {
+            setCustomTaxonomy(taxRes.data);
+          }
+        } catch (e) {
+          console.warn('Failed to fetch custom taxonomy:', e);
+        }
       }
 
       if (hasPermission('role.view')) {
@@ -137,6 +170,99 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     loadAllData();
   }, [user]);
+
+  const handleReviewCustomSubcategory = async (id, status, addToCatalog = false) => {
+    setReviewingTaxId(id);
+    try {
+      const res = await authService.reviewAdminCustomSubcategory(id, {
+        status,
+        add_to_catalog: addToCatalog,
+        admin_notes: addToCatalog ? 'Approved and integrated into global catalog' : `Marked as ${status}`
+      });
+      if (res.success) {
+        addToast(res.message || 'Taxonomy item updated', 'success');
+        const taxRes = await authService.getAdminCustomTaxonomy();
+        if (taxRes.success && taxRes.data) setCustomTaxonomy(taxRes.data);
+      } else {
+        addToast(res.message || 'Failed to update taxonomy item', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Network error updating taxonomy', 'error');
+    } finally {
+      setReviewingTaxId(null);
+    }
+  };
+
+  const handleUpdateSupplierStatus = async (e) => {
+    e.preventDefault();
+    if (!statusModalSupplier) return;
+    setStatusLoading(true);
+    try {
+      const res = await authService.updateAdminSupplierStatus(statusModalSupplier.id, {
+        status: statusTarget,
+        notes: statusNotes,
+        reason: statusNotes
+      });
+      if (res.success) {
+        addToast(res.message || `Status updated to ${statusTarget}`, 'success');
+        setStatusModalSupplier(null);
+        setStatusNotes('');
+        await loadAllData();
+      } else {
+        addToast(res.message || 'Failed to update status', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Network error updating status', 'error');
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const handleOpenAffectedBookings = async (supplier) => {
+    setAffectedModalSupplier(supplier);
+    setLoadingAffected(true);
+    try {
+      const res = await authService.getAdminSupplierAffectedBookings(supplier.id);
+      if (res.success && res.data) {
+        setAffectedData(res.data);
+      } else {
+        setAffectedData({ bookings: [], replacementSuppliers: [] });
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to load affected bookings', 'error');
+    } finally {
+      setLoadingAffected(false);
+    }
+  };
+
+  const handleReassignBooking = async (bookingId) => {
+    const targetSupId = reassignSupplierId[bookingId];
+    if (!targetSupId) {
+      addToast('Please select a replacement supplier first', 'error');
+      return;
+    }
+    setReassignLoadingId(bookingId);
+    try {
+      const res = await authService.reassignAdminSupplierBooking(affectedModalSupplier.id, {
+        booking_id: bookingId,
+        new_supplier_id: targetSupId,
+        action_taken: 'assign_replacement',
+        reason: 'Original supplier account suspended by admin'
+      });
+      if (res.success) {
+        addToast(res.message || 'Booking reassigned successfully', 'success');
+        // Refresh affected bookings
+        const refRes = await authService.getAdminSupplierAffectedBookings(affectedModalSupplier.id);
+        if (refRes.success && refRes.data) setAffectedData(refRes.data);
+      } else {
+        addToast(res.message || 'Failed to reassign booking', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Error reassigning booking', 'error');
+    } finally {
+      setReassignLoadingId(null);
+    }
+  };
 
   const handleSupplierDecision = async (e) => {
     e.preventDefault();
@@ -450,6 +576,39 @@ export default function AdminDashboardPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab('taxonomy')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 18px',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'taxonomy' ? '#FFFFFF' : 'transparent',
+              color: activeTab === 'taxonomy' ? '#333F70' : '#64748B',
+              fontWeight: '800',
+              fontSize: '13px',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'taxonomy' ? '0 2px 8px rgba(15, 23, 42, 0.08)' : 'none',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <Tag size={15} /> Custom Taxonomy
+            {(customTaxonomy.customSubcategories?.filter(c => c.status === 'pending').length || 0) > 0 && (
+              <span style={{
+                background: '#F59E0B',
+                color: '#FFFFFF',
+                borderRadius: '9999px',
+                padding: '2px 7px',
+                fontSize: '11px',
+                fontWeight: '800'
+              }}>
+                {customTaxonomy.customSubcategories.filter(c => c.status === 'pending').length}
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('users')}
             style={{
               display: 'inline-flex',
@@ -687,146 +846,456 @@ export default function AdminDashboardPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                    <th style={{ padding: '14px 16px' }}>ID</th>
-                    <th style={{ padding: '14px 16px' }}>Company Name</th>
+                    <th style={{ padding: '14px 16px' }}>ID & Type</th>
+                    <th style={{ padding: '14px 16px' }}>Business / Legal Identity</th>
                     <th style={{ padding: '14px 16px' }}>Contact Person</th>
                     <th style={{ padding: '14px 16px' }}>Email & Phone</th>
-                    <th style={{ padding: '14px 16px' }}>Trade License</th>
+                    <th style={{ padding: '14px 16px' }}>Tax / Reg ID</th>
                     <th style={{ padding: '14px 16px' }}>Status</th>
                     <th style={{ padding: '14px 16px' }}>Documents</th>
-                    <th style={{ padding: '14px 16px' }}>Actions</th>
+                    <th style={{ padding: '14px 16px' }}>Lifecycle Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {suppliers.map(s => (
-                    <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                      <td style={{ padding: '16px', fontWeight: '700', color: '#64748B' }}>#{s.id}</td>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ fontWeight: '800', color: '#0F172A' }}>{s.company_name}</div>
-                        <div style={{ fontSize: '12px', color: '#64748B' }}>{s.city}, {s.country}</div>
-                      </td>
-                      <td style={{ padding: '16px', color: '#334155' }}>
-                        {s.contact_person || `${s.first_name} ${s.last_name}`}
-                      </td>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ color: '#0F172A', fontWeight: '600' }}>{s.email}</div>
-                        <div style={{ fontSize: '12px', color: '#64748B' }}>{s.phone}</div>
-                      </td>
-                      <td style={{ padding: '16px' }}>
-                        <span style={{ background: '#F1F5F9', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontFamily: 'monospace' }}>
-                          {s.trade_license_no || 'Pending'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '16px' }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '4px 10px',
-                          borderRadius: '9999px',
-                          fontSize: '11px',
-                          fontWeight: '800',
-                          textTransform: 'uppercase',
-                          background: s.status === 'approved' ? '#D6F5EE' : s.status === 'under_review' ? '#FEF3C7' : '#FEE2E2',
-                          color: s.status === 'approved' ? '#0D9488' : s.status === 'under_review' ? '#D97706' : '#DC2626'
-                        }}>
-                          {s.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '16px' }}>
-                        <button
-                          onClick={() => setDocReviewSupplier(s)}
-                          style={{
+                  {suppliers.map(s => {
+                    const isInd = s.account_type === 'individual';
+                    const statusColorMap = {
+                      approved: { bg: '#D6F5EE', text: '#0D9488' },
+                      under_review: { bg: '#FEF3C7', text: '#D97706' },
+                      pending: { bg: '#E0E7FF', text: '#4338CA' },
+                      documents_required: { bg: '#FFEDD5', text: '#C2410C' },
+                      suspended: { bg: '#FEE2E2', text: '#DC2626' },
+                      blocked: { bg: '#450A0A', text: '#F87171' },
+                      rejected: { bg: '#FEE2E2', text: '#991B1B' }
+                    };
+                    const badge = statusColorMap[s.status] || { bg: '#F1F5F9', text: '#64748B' };
+
+                    return (
+                      <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ fontWeight: '800', color: '#0F172A' }}>#{s.id}</div>
+                          <span style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '6px 12px',
-                            borderRadius: '8px',
-                            border: '1.5px solid #0D9488',
-                            backgroundColor: '#F0FDFA',
-                            color: '#0D9488',
+                            gap: '4px',
+                            marginTop: '4px',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
                             fontWeight: '800',
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            boxShadow: '0 1px 3px rgba(13, 148, 136, 0.1)'
-                          }}
-                        >
-                          <FileText size={13} />
-                          {s.documents?.length || 0} Docs
-                          {(s.documents?.filter(d => d.status === 'pending') || []).length > 0 && (
-                            <span style={{
-                              backgroundColor: '#F59E0B',
-                              color: '#FFFFFF',
-                              borderRadius: '9999px',
-                              padding: '1px 6px',
-                              fontSize: '10px',
-                              fontWeight: '900'
-                            }}>
-                              {(s.documents.filter(d => d.status === 'pending')).length} new
-                            </span>
+                            backgroundColor: isInd ? '#EEF2FF' : '#F0FDF4',
+                            color: isInd ? '#4F46E5' : '#16A34A'
+                          }}>
+                            {isInd ? <User size={11} /> : <Building2 size={11} />}
+                            {isInd ? 'Individual' : 'Corporate'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ fontWeight: '800', color: '#0F172A' }}>
+                            {isInd ? (s.legal_name || s.display_name || s.company_name) : s.company_name}
+                          </div>
+                          {isInd && s.display_name && (
+                            <div style={{ fontSize: '11px', color: '#4F46E5' }}>Display: {s.display_name}</div>
                           )}
-                        </button>
-                      </td>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ fontSize: '12px', color: '#64748B' }}>{s.city}, {s.country}</div>
+                        </td>
+                        <td style={{ padding: '16px', color: '#334155' }}>
+                          {s.contact_person || `${s.first_name} ${s.last_name}`}
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ color: '#0F172A', fontWeight: '600' }}>{s.email}</div>
+                          <div style={{ fontSize: '12px', color: '#64748B' }}>{s.phone}</div>
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{ background: '#F1F5F9', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontFamily: 'monospace' }}>
+                            {isInd ? (s.trade_license_no || 'PAN/Gov ID') : (s.tax_registration_no || s.trade_license_no || 'GST/Reg')}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '4px 10px',
+                            borderRadius: '9999px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            textTransform: 'uppercase',
+                            background: badge.bg,
+                            color: badge.text
+                          }}>
+                            {s.status.replace('_', ' ')}
+                          </span>
+                          {s.approval_notes && (
+                            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', maxWidth: '140px' }} title={s.approval_notes}>
+                              {s.approval_notes.length > 25 ? s.approval_notes.substring(0, 25) + '...' : s.approval_notes}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: '16px' }}>
                           <button
                             onClick={() => setDocReviewSupplier(s)}
                             style={{
-                              padding: '6px 12px',
-                              borderRadius: '8px',
-                              background: '#F1F5F9',
-                              color: '#334155',
-                              border: '1px solid #CBD5E1',
-                              fontWeight: '700',
-                              fontSize: '12px',
-                              cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px'
+                              gap: '6px',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              border: '1.5px solid #0D9488',
+                              backgroundColor: '#F0FDFA',
+                              color: '#0D9488',
+                              fontWeight: '800',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              boxShadow: '0 1px 3px rgba(13, 148, 136, 0.1)'
                             }}
                           >
-                            <Eye size={13} /> Inspect KYC
+                            <FileText size={13} />
+                            {s.documents?.length || 0} Docs
+                            {(s.documents?.filter(d => d.status === 'pending') || []).length > 0 && (
+                              <span style={{
+                                backgroundColor: '#F59E0B',
+                                color: '#FFFFFF',
+                                borderRadius: '9999px',
+                                padding: '1px 6px',
+                                fontSize: '10px',
+                                fontWeight: '900'
+                              }}>
+                                {(s.documents.filter(d => d.status === 'pending')).length} new
+                              </span>
+                            )}
                           </button>
-                          {hasPermission('supplier.approve') ? (
-                            <>
-                              <button
-                                onClick={() => { setActionSupplier(s); setActionType('approve'); setActionNote('All business documents verified & approved'); }}
-                                style={{
-                                  padding: '6px 12px',
-                                  borderRadius: '8px',
-                                  background: '#D6F5EE',
-                                  color: '#0D9488',
-                                  border: 'none',
-                                  fontWeight: '700',
-                                  fontSize: '12px',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => { setActionSupplier(s); setActionType('reject'); setActionNote('Trade license unverified or missing'); }}
-                                style={{
-                                  padding: '6px 12px',
-                                  borderRadius: '8px',
-                                  background: '#FEE2E2',
-                                  color: '#DC2626',
-                                  border: 'none',
-                                  fontWeight: '700',
-                                  fontSize: '12px',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                Reject
-                              </button>
-                            </>
-                          ) : (
-                            <span style={{ color: '#94A3B8', fontSize: '12px' }}>Locked</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <button
+                              onClick={() => setDocReviewSupplier(s)}
+                              style={{
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                background: '#F1F5F9',
+                                color: '#334155',
+                                border: '1px solid #CBD5E1',
+                                fontWeight: '700',
+                                fontSize: '11px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              <Eye size={12} /> Inspect
+                            </button>
+
+                            {hasPermission('supplier.approve') && (
+                              <>
+                                {s.status !== 'approved' && (
+                                  <button
+                                    onClick={() => { setActionSupplier(s); setActionType('approve'); setActionNote('All business and KYC credentials verified'); }}
+                                    style={{
+                                      padding: '6px 10px',
+                                      borderRadius: '8px',
+                                      background: '#D6F5EE',
+                                      color: '#0D9488',
+                                      border: 'none',
+                                      fontWeight: '700',
+                                      fontSize: '11px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Approve
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() => {
+                                    setStatusModalSupplier(s);
+                                    setStatusTarget('documents_required');
+                                    setStatusNotes('Additional identity/registration proof required');
+                                  }}
+                                  style={{
+                                    padding: '6px 10px',
+                                    borderRadius: '8px',
+                                    background: '#FFEDD5',
+                                    color: '#C2410C',
+                                    border: 'none',
+                                    fontWeight: '700',
+                                    fontSize: '11px',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Request additional compliance documents"
+                                >
+                                  Docs Req
+                                </button>
+
+                                {s.status === 'approved' && (
+                                  <button
+                                    onClick={() => {
+                                      setStatusModalSupplier(s);
+                                      setStatusTarget('suspended');
+                                      setStatusNotes('Account suspended pending compliance review');
+                                    }}
+                                    style={{
+                                      padding: '6px 10px',
+                                      borderRadius: '8px',
+                                      background: '#FEE2E2',
+                                      color: '#DC2626',
+                                      border: 'none',
+                                      fontWeight: '700',
+                                      fontSize: '11px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Suspend
+                                  </button>
+                                )}
+
+                                {(s.status === 'suspended' || s.status === 'blocked') && (
+                                  <button
+                                    onClick={() => handleOpenAffectedBookings(s)}
+                                    style={{
+                                      padding: '6px 10px',
+                                      borderRadius: '8px',
+                                      background: '#FEF3C7',
+                                      color: '#B45309',
+                                      border: '1px solid #FCD34D',
+                                      fontWeight: '800',
+                                      fontSize: '11px',
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                    title="View affected bookings and reassign"
+                                  >
+                                    <RotateCcw size={11} /> Reassign
+                                  </button>
+                                )}
+
+                                {s.status !== 'rejected' && s.status !== 'approved' && (
+                                  <button
+                                    onClick={() => { setActionSupplier(s); setActionType('reject'); setActionNote('Incomplete registration or invalid credentials'); }}
+                                    style={{
+                                      padding: '6px 10px',
+                                      borderRadius: '8px',
+                                      background: '#F1F5F9',
+                                      color: '#DC2626',
+                                      border: '1px solid #FECACA',
+                                      fontWeight: '700',
+                                      fontSize: '11px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Reject
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* TAB: CUSTOM TAXONOMY & ADD-ONS (SECTIONS 3.1 - 3.4) */}
+        {/* ------------------------------------------------------------- */}
+        {activeTab === 'taxonomy' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Custom Sub-Categories */}
+            <div style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '28px',
+              border: '1px solid rgba(15, 23, 42, 0.08)',
+              boxShadow: '0 10px 30px -5px rgba(51, 63, 112, 0.05)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A' }}>
+                    Custom Sub-Categories (Moderation Queue)
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
+                    Suppliers entered custom sub-categories via the "Other" option. Approve for supplier or elevate to the Platform Catalog.
+                  </p>
+                </div>
+                <span style={{ padding: '6px 12px', borderRadius: '8px', background: '#F1F5F9', color: '#334155', fontSize: '12px', fontWeight: '700' }}>
+                  Total: {customTaxonomy.customSubcategories?.length || 0}
+                </span>
+              </div>
+
+              {(!customTaxonomy.customSubcategories || customTaxonomy.customSubcategories.length === 0) ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B', border: '1px dashed #CBD5E1', borderRadius: '14px' }}>
+                  No custom sub-categories submitted yet.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontSize: '12px', textTransform: 'uppercase' }}>
+                        <th style={{ padding: '12px 16px' }}>Main Category</th>
+                        <th style={{ padding: '12px 16px' }}>Proposed Sub-Category</th>
+                        <th style={{ padding: '12px 16px' }}>Submitted By</th>
+                        <th style={{ padding: '12px 16px' }}>Status</th>
+                        <th style={{ padding: '12px 16px' }}>Submitted At</th>
+                        <th style={{ padding: '12px 16px' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {customTaxonomy.customSubcategories.map(item => (
+                        <tr key={item.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '14px 16px', fontWeight: '700', color: '#0F172A' }}>
+                            <span style={{ padding: '4px 10px', borderRadius: '6px', backgroundColor: '#F1F5F9', color: '#333F70', fontSize: '12px' }}>
+                              {item.main_category_name || `Cat #${item.main_category_id}`}
+                            </span>
+                          </td>
+                          <td style={{ padding: '14px 16px', fontWeight: '800', color: '#0D9488', fontSize: '14px' }}>
+                            {item.name}
+                          </td>
+                          <td style={{ padding: '14px 16px', color: '#334155' }}>
+                            {item.company_name} (ID #{item.supplier_id})
+                          </td>
+                          <td style={{ padding: '14px 16px' }}>
+                            <span style={{
+                              padding: '3px 8px',
+                              borderRadius: '9999px',
+                              fontSize: '11px',
+                              fontWeight: '800',
+                              textTransform: 'uppercase',
+                              backgroundColor: item.status === 'approved' ? '#D6F5EE' : item.status === 'rejected' ? '#FEE2E2' : '#FEF3C7',
+                              color: item.status === 'approved' ? '#0D9488' : item.status === 'rejected' ? '#DC2626' : '#B45309'
+                            }}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '14px 16px', color: '#64748B', fontSize: '12px' }}>
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </td>
+                          <td style={{ padding: '14px 16px' }}>
+                            {item.status === 'pending' ? (
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  onClick={() => handleReviewCustomSubcategory(item.id, 'approved', true)}
+                                  disabled={reviewingTaxId === item.id}
+                                  style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#0D9488',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    fontSize: '11px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Approve and make available platform-wide"
+                                >
+                                  + Add to Catalog
+                                </button>
+                                <button
+                                  onClick={() => handleReviewCustomSubcategory(item.id, 'approved', false)}
+                                  disabled={reviewingTaxId === item.id}
+                                  style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#E0E7FF',
+                                    color: '#4338CA',
+                                    border: 'none',
+                                    fontSize: '11px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Approve for this supplier only"
+                                >
+                                  Approve Only
+                                </button>
+                                <button
+                                  onClick={() => handleReviewCustomSubcategory(item.id, 'rejected', false)}
+                                  disabled={reviewingTaxId === item.id}
+                                  style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#FEE2E2',
+                                    color: '#DC2626',
+                                    border: 'none',
+                                    fontSize: '11px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '12px', color: '#94A3B8' }}>Reviewed</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Custom Services & Add-ons */}
+            <div style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '28px',
+              border: '1px solid rgba(15, 23, 42, 0.08)',
+              boxShadow: '0 10px 30px -5px rgba(51, 63, 112, 0.05)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A' }}>
+                    Custom Services / Activity Offerings
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
+                    Custom activity titles requested when predefined options were unavailable.
+                  </p>
+                </div>
+                <span style={{ padding: '6px 12px', borderRadius: '8px', background: '#F1F5F9', color: '#334155', fontSize: '12px', fontWeight: '700' }}>
+                  Total: {customTaxonomy.customServices?.length || 0}
+                </span>
+              </div>
+
+              {(!customTaxonomy.customServices || customTaxonomy.customServices.length === 0) ? (
+                <div style={{ textAlign: 'center', padding: '30px 20px', color: '#64748B', border: '1px dashed #CBD5E1', borderRadius: '14px' }}>
+                  No custom service titles submitted.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontSize: '12px', textTransform: 'uppercase' }}>
+                        <th style={{ padding: '12px 16px' }}>Service Name</th>
+                        <th style={{ padding: '12px 16px' }}>Supplier</th>
+                        <th style={{ padding: '12px 16px' }}>Status</th>
+                        <th style={{ padding: '12px 16px' }}>Submitted At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {customTaxonomy.customServices.map(srv => (
+                        <tr key={srv.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '12px 16px', fontWeight: '800', color: '#0F172A' }}>{srv.name}</td>
+                          <td style={{ padding: '12px 16px', color: '#334155' }}>{srv.company_name} (ID #{srv.supplier_id})</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#FEF3C7', color: '#B45309', fontSize: '11px', fontWeight: '800' }}>
+                              {srv.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748B', fontSize: '12px' }}>
+                            {new Date(srv.created_at).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1566,6 +2035,305 @@ export default function AdminDashboardPage() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Supplier Lifecycle / Status Change Modal (Documents Required / Suspended) */}
+      {statusModalSupplier && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '500px',
+            width: '100%',
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px',
+            border: '1px solid rgba(15, 23, 42, 0.08)',
+            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)'
+          }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>
+              Update Supplier Lifecycle Status
+            </h3>
+            <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '20px' }}>
+              Supplier: <strong style={{ color: '#0F172A' }}>{statusModalSupplier.company_name || statusModalSupplier.legal_name}</strong> (#{statusModalSupplier.id})
+            </p>
+
+            <form onSubmit={handleUpdateSupplierStatus}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>
+                  Target Lifecycle Status
+                </label>
+                <select
+                  value={statusTarget}
+                  onChange={e => setStatusTarget(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    outline: 'none',
+                    background: '#FAFAF8'
+                  }}
+                >
+                  <option value="documents_required">Documents Required (Request Missing Proofs)</option>
+                  <option value="suspended">Suspended (Temporarily Halt Bookings & Activities)</option>
+                  <option value="blocked">Blocked (Permanently Terminate Account)</option>
+                  <option value="under_review">Under Review (Compliance Verification In-Progress)</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>
+                  Admin Remarks / Instructions (Dispatched to Supplier)
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={statusNotes}
+                  onChange={e => setStatusNotes(e.target.value)}
+                  placeholder="e.g. Please upload updated address proof and bank statement..."
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '13px',
+                    outline: 'none',
+                    background: '#FAFAF8'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="submit"
+                  disabled={statusLoading}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: statusTarget === 'suspended' || statusTarget === 'blocked' ? '#DC2626' : '#C2410C',
+                    color: '#FFFFFF',
+                    fontWeight: '800',
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {statusLoading ? <Loader2 size={16} className="animate-spin" /> : 'Confirm Status Update'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusModalSupplier(null)}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '10px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    color: '#64748B',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Affected Bookings & Reassignment Modal (Section 26.1) */}
+      {affectedModalSupplier && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '900px',
+            width: '100%',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            border: '1px solid rgba(15, 23, 42, 0.08)',
+            boxShadow: '0 25px 60px -12px rgba(15, 23, 42, 0.3)',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              padding: '24px 28px',
+              borderBottom: '1px solid #E2E8F0',
+              backgroundColor: '#FAFAF8',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#DC2626', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  Suspension Protocol • Section 26.1
+                </span>
+                <h3 style={{ fontSize: '20px', fontWeight: '850', color: '#0F172A', margin: '2px 0 0' }}>
+                  Affected Bookings: {affectedModalSupplier.company_name}
+                </h3>
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
+                  Total Active Bookings Affected: <strong>{affectedData.bookings?.length || 0}</strong>
+                </div>
+              </div>
+              <button
+                onClick={() => setAffectedModalSupplier(null)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  border: '1px solid #E2E8F0',
+                  backgroundColor: '#FFFFFF',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748B'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px 28px', overflowY: 'auto', flex: 1 }}>
+              {loadingAffected ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#64748B' }}>
+                  <Loader2 size={30} className="animate-spin" style={{ margin: '0 auto 10px' }} />
+                  Loading affected reservations...
+                </div>
+              ) : (!affectedData.bookings || affectedData.bookings.length === 0) ? (
+                <div style={{ textAlign: 'center', padding: '48px 20px', border: '1.5px dashed #CBD5E1', borderRadius: '16px', color: '#64748B' }}>
+                  <CheckCircle2 size={38} style={{ color: '#0D9488', marginBottom: '8px' }} />
+                  <div style={{ fontWeight: '800', color: '#0F172A' }}>No Active Bookings Affected</div>
+                  <div style={{ fontSize: '12px', marginTop: '4px' }}>This supplier does not have any pending or confirmed bookings requiring reassignment.</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {affectedData.bookings.map(b => (
+                    <div
+                      key={b.id}
+                      style={{
+                        padding: '18px 20px',
+                        borderRadius: '16px',
+                        border: '1.5px solid #E2E8F0',
+                        backgroundColor: '#F8FAFC',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '16px'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: '800', color: '#0F172A', fontSize: '15px' }}>
+                            Ref #{b.booking_reference || b.id}
+                          </span>
+                          <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#FEF3C7', color: '#B45309', fontSize: '11px', fontWeight: '800' }}>
+                            {b.booking_status?.toUpperCase()}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#0D9488', marginTop: '4px' }}>
+                          {b.activity_title}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                          Customer: <strong>{b.first_name} {b.last_name}</strong> ({b.email}) • Amount: <strong>₹{parseFloat(b.total_amount || 0).toLocaleString()}</strong>
+                        </div>
+                      </div>
+
+                      {/* Reassign select & button */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <select
+                          value={reassignSupplierId[b.id] || ''}
+                          onChange={e => setReassignSupplierId({ ...reassignSupplierId, [b.id]: e.target.value })}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '1.5px solid #CBD5E1',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            outline: 'none',
+                            background: '#FFFFFF'
+                          }}
+                        >
+                          <option value="">Select Replacement Supplier...</option>
+                          {affectedData.replacementSuppliers?.map(rep => (
+                            <option key={rep.id} value={rep.id}>
+                              {rep.company_name} ({rep.city || 'Approved'})
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          onClick={() => handleReassignBooking(b.id)}
+                          disabled={reassignLoadingId === b.id || !reassignSupplierId[b.id]}
+                          style={{
+                            padding: '8px 14px',
+                            borderRadius: '8px',
+                            backgroundColor: '#333F70',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: '800',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {reassignLoadingId === b.id ? <Loader2 size={13} className="animate-spin" /> : 'Reassign'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '16px 28px', borderTop: '1px solid #E2E8F0', backgroundColor: '#FAFAF8', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setAffectedModalSupplier(null)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  border: '1px solid #CBD5E1',
+                  backgroundColor: '#FFFFFF',
+                  color: '#475569',
+                  fontSize: '13px',
+                  fontWeight: '750',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

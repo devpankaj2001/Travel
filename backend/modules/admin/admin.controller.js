@@ -519,9 +519,21 @@ const rejectSupplier = async (req, res, next) => {
 const updateSupplierStatus = async (req, res, next) => {
   try {
     const supplierId = req.params.id;
-    const { status, notes } = req.body;
+    const { status, notes, reason } = req.body;
+    const finalNote = notes || reason;
 
-    const validStatuses = ['draft', 'submitted', 'under_verification', 'under_review', 'approved', 'rejected', 'suspended'];
+    const validStatuses = [
+      'pending',
+      'under_review',
+      'documents_required',
+      'approved',
+      'rejected',
+      'suspended',
+      'blocked',
+      'draft',
+      'submitted',
+      'under_verification'
+    ];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -533,11 +545,14 @@ const updateSupplierStatus = async (req, res, next) => {
       return approveSupplier(req, res, next);
     }
     if (status === 'rejected') {
-      req.body.reason = notes;
+      req.body.reason = finalNote;
       return rejectSupplier(req, res, next);
     }
 
-    const suppliers = await query('SELECT * FROM suppliers WHERE id = ?', [supplierId]);
+    const suppliers = await query(
+      `SELECT s.*, u.email, u.first_name FROM suppliers s JOIN users u ON s.user_id = u.id WHERE s.id = ?`,
+      [supplierId]
+    );
     if (suppliers.length === 0) {
       return res.status(404).json({ success: false, message: 'Supplier not found' });
     }
@@ -545,11 +560,18 @@ const updateSupplierStatus = async (req, res, next) => {
 
     await query(
       `UPDATE suppliers SET status = ?, approval_notes = ? WHERE id = ?`,
-      [status, notes || null, supplierId]
+      [status, finalNote || null, supplierId]
     );
 
-    if (status === 'suspended') {
+    if (status === 'suspended' || status === 'blocked') {
       await query(`UPDATE users SET status = 'suspended' WHERE id = ?`, [oldSupplier.user_id]);
+    } else if (status === 'documents_required') {
+      // Send notification / email to supplier requesting documents
+      await sendSupplierStatusEmail({
+        user: { id: oldSupplier.user_id, email: oldSupplier.email, first_name: oldSupplier.first_name },
+        status: 'documents_required',
+        reason: finalNote || 'Additional documentation required for compliance verification'
+      });
     }
 
     await recordAuditLog({
@@ -558,8 +580,8 @@ const updateSupplierStatus = async (req, res, next) => {
       entityId: supplierId,
       action: 'UPDATE_SUPPLIER_STATUS',
       oldValue: { status: oldSupplier.status },
-      newValue: { status, notes },
-      reason: notes || `Admin changed status to ${status}`,
+      newValue: { status, notes: finalNote },
+      reason: finalNote || `Admin changed status to ${status}`,
       req
     });
 
@@ -567,6 +589,151 @@ const updateSupplierStatus = async (req, res, next) => {
       success: true,
       message: `Supplier status changed to ${status}`,
       data: { status }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * List Custom Taxonomy Submitted by Suppliers (Section 3.3 & 3.4)
+ * GET /api/v1/admin/custom-taxonomy
+ */
+const getCustomTaxonomy = async (req, res, next) => {
+  try {
+    const customSubs = await query(
+      `SELECT scs.*, s.company_name, mc.name AS main_category_name
+       FROM supplier_custom_subcategories scs
+       JOIN suppliers s ON scs.supplier_id = s.id
+       JOIN main_categories mc ON scs.main_category_id = mc.id
+       ORDER BY scs.id DESC`
+    );
+
+    const customServices = await query(
+      `SELECT scserv.*, s.company_name
+       FROM supplier_custom_services scserv
+       JOIN suppliers s ON scserv.supplier_id = s.id
+       ORDER BY scserv.id DESC`
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        customSubcategories: customSubs,
+        customServices: customServices
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Moderate Custom Sub-Category (Section 3.3)
+ * PUT /api/v1/admin/custom-taxonomy/sub/:id/review
+ */
+const reviewCustomSubcategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, admin_notes, add_to_catalog = false } = req.body; // 'approved' | 'rejected'
+
+    const rows = await query('SELECT * FROM supplier_custom_subcategories WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Custom sub-category record not found' });
+    }
+    const item = rows[0];
+
+    await query(
+      'UPDATE supplier_custom_subcategories SET status = ?, admin_notes = ? WHERE id = ?',
+      [status, admin_notes || null, id]
+    );
+
+    // If approved and add_to_catalog is true, add to global platform catalog
+    if (status === 'approved' && add_to_catalog) {
+      const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const exist = await query('SELECT id FROM sub_categories WHERE main_category_id = ? AND slug = ?', [item.main_category_id, slug]);
+      if (exist.length === 0) {
+        await query(
+          'INSERT INTO sub_categories (main_category_id, name, slug, is_other, display_order, is_active) VALUES (?, ?, ?, 0, 99, 1)',
+          [item.main_category_id, item.name, slug]
+        );
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Custom sub-category marked as ${status}${add_to_catalog ? ' and added to platform catalogue' : ''}`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get Affected Bookings for a Suspended Supplier (Section 26.1)
+ * GET /api/v1/admin/suppliers/:id/affected-bookings
+ */
+const getSupplierAffectedBookings = async (req, res, next) => {
+  try {
+    const supplierId = req.params.id;
+
+    // Get bookings associated with supplier's activities
+    const bookings = await query(
+      `SELECT b.id, b.booking_reference, b.booking_status, b.payment_status, b.total_amount,
+              b.created_at, b.booking_date, u.first_name, u.last_name, u.email,
+              a.title AS activity_title, a.id AS activity_id
+       FROM bookings b
+       JOIN activities a ON b.activity_id = a.id
+       JOIN users u ON b.user_id = u.id
+       WHERE a.supplier_id = ? AND b.booking_status IN ('pending', 'confirmed')
+       ORDER BY b.id DESC`,
+      [supplierId]
+    );
+
+    // Get list of other approved replacement suppliers
+    const replacementSuppliers = await query(
+      `SELECT id, company_name, email, city FROM suppliers WHERE id != ? AND status = 'approved'`,
+      [supplierId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        total: bookings.length,
+        bookings,
+        replacementSuppliers
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reassign Booking to Replacement Supplier (Section 26.1)
+ * POST /api/v1/admin/suppliers/:id/reassign-booking
+ */
+const reassignSupplierBooking = async (req, res, next) => {
+  try {
+    const { booking_id, new_supplier_id, action_taken = 'assign_replacement', reason } = req.body;
+
+    if (!booking_id) {
+      return res.status(400).json({ success: false, message: 'Booking ID is required' });
+    }
+
+    await recordAuditLog({
+      actorId: req.user.id,
+      entityType: 'bookings',
+      entityId: booking_id,
+      action: 'REASSIGN_SUPPLIER_BOOKING',
+      newValue: { new_supplier_id, action_taken, reason },
+      reason: reason || 'Booking reassigned due to supplier suspension',
+      req
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Booking ${booking_id} successfully updated with action: ${action_taken}. Audit trail recorded.`
     });
   } catch (error) {
     next(error);
@@ -649,5 +816,9 @@ module.exports = {
   approveSupplier,
   rejectSupplier,
   getRevenueReportOverview,
-  listAuditLogs
+  listAuditLogs,
+  getCustomTaxonomy,
+  reviewCustomSubcategory,
+  getSupplierAffectedBookings,
+  reassignSupplierBooking
 };

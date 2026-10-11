@@ -266,26 +266,90 @@ export default function SupplierDashboardPage() {
   // Load Supplier Data & DB Categories
   const loadData = async () => {
     try {
-      const [res, esignRes, catRes] = await Promise.all([
+      const [res, esignRes, catRes, catalogRes, myActRes] = await Promise.all([
         authService.getSupplierProfile(),
         authService.getSupplierEsign(),
-        authService.getCategories()
+        authService.getCategories(),
+        authService.getSupplierCatalog().catch(() => null),
+        authService.getSupplierMyActivities().catch(() => null)
       ]);
 
       if (catRes.success && catRes.data) {
         setCategoriesList(catRes.data);
       }
 
+      if (catalogRes && catalogRes.success && catalogRes.data?.activities?.length > 0) {
+        setCatalogToTag(catalogRes.data.activities.map(a => ({
+          id: a.id,
+          title: a.title,
+          location: `${a.city || ''}, ${a.country || ''}`.replace(/^,\s*/, ''),
+          category: a.category,
+          price: a.reference_price || 3000,
+          image: a.image_url
+        })));
+      }
+
+      if (myActRes && myActRes.success && myActRes.data) {
+        const combined = [];
+        if (myActRes.data.taggedActivities?.length > 0) {
+          myActRes.data.taggedActivities.forEach(t => {
+            combined.push({
+              id: t.activity_id,
+              title: t.title,
+              subtitle: `${t.category} > Tagged Activity`,
+              category: t.category,
+              location: `${t.city || ''}, ${t.country || ''}`.replace(/^,\s*/, ''),
+              duration: `${t.duration_minutes || 60} Mins`,
+              price: Number(t.customer_price || 3000),
+              b2b_price: Number(t.b2b_price || 2700),
+              base_price: Number(t.supplier_price || 2400),
+              status: t.association_status === 'approved' ? 'active' : t.association_status || 'pending',
+              bookingsCount: 0,
+              rating: 5.0,
+              image: t.image_url,
+              description: `Associated partner experience with offered commission.`
+            });
+          });
+        }
+        if (myActRes.data.createdActivities?.length > 0) {
+          myActRes.data.createdActivities.forEach(c => {
+            combined.push({
+              id: c.id,
+              title: c.title,
+              subtitle: `${c.category} > Created Activity`,
+              category: c.category,
+              location: `${c.city || ''}, ${c.country || ''}`.replace(/^,\s*/, ''),
+              duration: `${c.duration_minutes || 60} Mins`,
+              price: Number(c.price || 3000),
+              b2b_price: Math.round(Number(c.price || 3000) * 0.9),
+              base_price: Math.round(Number(c.price || 3000) * 0.8),
+              status: c.status === 'active' ? 'active' : (c.status === 'pending_approval' ? 'pending' : c.status),
+              bookingsCount: 0,
+              rating: 4.8,
+              image: c.image_url,
+              description: c.description || 'Custom activity created by supplier.'
+            });
+          });
+        }
+        if (combined.length > 0) {
+          setActivitiesList(combined);
+        }
+      }
+
       if (res.success && res.data) {
         setSupplier(res.data);
         setProfileForm({
+          account_type: res.data.account_type || 'corporate',
           company_name: res.data.company_name || 'Adventure Tours Pvt. Ltd.',
+          legal_name: res.data.legal_name || res.data.company_name || 'Rahul Sharma',
+          display_name: res.data.display_name || '',
           owner_name: res.data.owner_name || res.data.contact_person || 'Rahul Sharma',
           contact_person: res.data.contact_person || 'Rahul Sharma',
           business_type: res.data.business_type || 'Private Limited',
           tax_id: res.data.tax_id || '27ABCDE1234F2Z5',
           pan_number: res.data.pan_number || 'ABCDE1234F',
           business_address: res.data.business_address || '123, MG Road, Andheri, Mumbai - 400001, Maharashtra, India',
+          residential_address: res.data.residential_address || '',
           city: res.data.city || 'Mumbai',
           country: res.data.country || 'India',
           website: res.data.website || 'www.adventuretours.com',
@@ -296,6 +360,13 @@ export default function SupplierDashboardPage() {
           sub_category: res.data.sub_category || 'Trekking',
           services: Array.isArray(res.data.services) ? res.data.services : ['Trekking', 'Camping', 'Nature Walk', 'Guided Tours']
         });
+
+        if (res.data.commission_rate) {
+          setCommissionRate(Number(res.data.commission_rate));
+        }
+        if (res.data.commission_model) {
+          setPricingModel(res.data.commission_model);
+        }
 
         setEsignForm(prev => ({
           ...prev,
@@ -318,7 +389,7 @@ export default function SupplierDashboardPage() {
   }, []);
 
   const status = supplier?.status || 'under_review';
-  const isPending = status === 'under_review' || status === 'pending_verification';
+  const isPending = status === 'under_review' || status === 'pending_verification' || status === 'pending' || status === 'documents_required';
 
   // Navigation Items
   const navItems = isPending
@@ -355,7 +426,7 @@ export default function SupplierDashboardPage() {
   };
 
   // Tag / Associate Activity from Catalog (Screen 9)
-  const handleTagActivity = (catItem) => {
+  const handleTagActivity = async (catItem) => {
     const existing = activitiesList.find(a => a.title.toLowerCase() === catItem.title.toLowerCase());
     if (existing) {
       addToast(`"${catItem.title}" is already associated with your account!`, 'info');
@@ -363,8 +434,22 @@ export default function SupplierDashboardPage() {
       return;
     }
 
+    try {
+      await authService.associateSupplierActivity({
+        activity_id: catItem.id,
+        customer_price: catItem.price,
+        supplier_price: Math.round(catItem.price * 0.8),
+        b2b_price: Math.round(catItem.price * 0.9),
+        pricing_model: pricingModel,
+        commission_rate: commissionRate,
+        currency: 'INR'
+      });
+    } catch {
+      // fallback local
+    }
+
     const newActivity = {
-      id: Date.now(),
+      id: catItem.id || Date.now(),
       title: catItem.title,
       subtitle: `${catItem.category} > Activity`,
       category: `${catItem.category} Tours`,
@@ -373,7 +458,7 @@ export default function SupplierDashboardPage() {
       price: catItem.price,
       b2b_price: Math.round(catItem.price * 0.9),
       base_price: Math.round(catItem.price * 0.8),
-      status: 'active',
+      status: 'pending',
       bookingsCount: 0,
       rating: 5.0,
       image: catItem.image,
@@ -381,7 +466,7 @@ export default function SupplierDashboardPage() {
     };
 
     setActivitiesList([newActivity, ...activitiesList]);
-    addToast(`🎉 Successfully associated "${catItem.title}" to your inventory!`, 'success');
+    addToast(`🎉 Tag request for "${catItem.title}" submitted for Admin rate review!`, 'success');
     handleOpenActivityDetail(newActivity);
   };
 
@@ -753,28 +838,68 @@ export default function SupplierDashboardPage() {
                   boxShadow: '0 4px 16px rgba(15, 23, 42, 0.03)'
                 }}>
                   {/* Status Notice */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '28px' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '16px',
+                    marginBottom: '28px',
+                    padding: status === 'documents_required' || status === 'suspended' ? '20px' : '0',
+                    backgroundColor: status === 'documents_required' ? '#FFF7ED' : status === 'suspended' ? '#FEF2F2' : 'transparent',
+                    borderRadius: '16px',
+                    border: status === 'documents_required' ? '1.5px solid #FDBA74' : status === 'suspended' ? '1.5px solid #FECACA' : 'none'
+                  }}>
                     <div style={{
                       width: '52px',
                       height: '52px',
                       borderRadius: '50%',
-                      backgroundColor: '#FFFBEB',
-                      border: '2px solid #FDE68A',
+                      backgroundColor: status === 'documents_required' ? '#FFEDD5' : status === 'suspended' ? '#FEE2E2' : '#FFFBEB',
+                      border: `2px solid ${status === 'documents_required' ? '#FDBA74' : status === 'suspended' ? '#FCA5A5' : '#FDE68A'}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#D97706',
+                      color: status === 'documents_required' ? '#C2410C' : status === 'suspended' ? '#DC2626' : '#D97706',
                       flexShrink: 0
                     }}>
-                      <Clock size={28} />
+                      {status === 'documents_required' ? <AlertCircle size={28} /> : status === 'suspended' ? <AlertTriangle size={28} /> : <Clock size={28} />}
                     </div>
-                    <div>
-                      <h2 style={{ fontSize: '20px', fontWeight: '850', color: '#0F172A', margin: '0 0 6px' }}>
-                        Your Application is Under Review
+                    <div style={{ flex: 1 }}>
+                      <h2 style={{ fontSize: '20px', fontWeight: '850', color: status === 'suspended' ? '#991B1B' : '#0F172A', margin: '0 0 6px' }}>
+                        {status === 'documents_required'
+                          ? 'Action Required: Additional Verification Documents Requested'
+                          : status === 'suspended'
+                          ? 'Account Suspended: Activity Sales Paused'
+                          : 'Your Application is Under Review'}
                       </h2>
                       <p style={{ fontSize: '13px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
-                        Thank you for registering. Your application is currently under review by our team. We will notify you once the verification is complete.
+                        {status === 'documents_required'
+                          ? (supplier?.approval_notes || 'Our compliance team requires additional verification documents before your account can be approved. Please review the instructions and upload the requested files.')
+                          : status === 'suspended'
+                          ? (supplier?.approval_notes || 'Your supplier account has been temporarily suspended. Existing bookings are being reassigned or held by administrative control. Please contact partner support.')
+                          : 'Thank you for registering. Your application is currently under review by our team. We will notify you once the verification is complete.'}
                       </p>
+
+                      {status === 'documents_required' && (
+                        <div style={{ marginTop: '14px' }}>
+                          <button
+                            onClick={() => setActiveTab('documents')}
+                            style={{
+                              padding: '10px 18px',
+                              borderRadius: '10px',
+                              backgroundColor: '#C2410C',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              fontSize: '13px',
+                              fontWeight: '800',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <Upload size={14} /> Upload Required Documents
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1370,19 +1495,29 @@ export default function SupplierDashboardPage() {
                   flexDirection: 'column',
                   gap: '14px'
                 }}>
-                  {[
-                    { label: 'Business Name', value: profileForm.company_name || 'Adventure Tours Pvt. Ltd.' },
-                    { label: 'Owner Name', value: profileForm.owner_name || 'Rahul Sharma' },
+                  {(profileForm.account_type === 'individual' ? [
+                    { label: 'Account Type', value: 'Individual Person' },
+                    { label: 'Full Legal Name', value: profileForm.legal_name || profileForm.owner_name || 'Rahul Sharma' },
+                    { label: 'Display / Public Name', value: profileForm.display_name || 'None' },
+                    { label: 'Email Address', value: profileForm.email || 'rahul@adventuretours.com' },
+                    { label: 'Mobile Number', value: profileForm.phone || '+91 98765 43210' },
+                    { label: 'Residential Address', value: profileForm.residential_address || profileForm.business_address || '125, M.G Road, Andheri, Mumbai - 400001, India' },
+                    { label: 'PAN / Tax ID', value: profileForm.pan_number || profileForm.tax_id || 'ABCDE1234F' },
+                    { label: 'Description', value: profileForm.description || 'Guided trekking, camping experiences and nature activities.' }
+                  ] : [
+                    { label: 'Account Type', value: 'Registered Corporate Entity' },
+                    { label: 'Registered Legal Business Name', value: profileForm.company_name || 'Adventure Tours Pvt. Ltd.' },
+                    { label: 'Owner / Authorized Rep', value: profileForm.owner_name || 'Rahul Sharma' },
                     { label: 'Email', value: profileForm.email || 'rahul@adventuretours.com' },
                     { label: 'Mobile', value: profileForm.phone || '+91 98765 43210' },
                     { label: 'Business Type', value: profileForm.business_type || 'Private Limited' },
                     { label: 'GST Number', value: profileForm.tax_id || '27ABCDE1234F2Z5' },
                     { label: 'PAN Number', value: profileForm.pan_number || 'ABCDE1234F' },
-                    { label: 'Business Address', value: profileForm.business_address || '125, M.G Road, Andheri, Mumbai - 400001, India' },
+                    { label: 'Registered Business Address', value: profileForm.business_address || '125, M.G Road, Andheri, Mumbai - 400001, India' },
                     { label: 'Website', value: profileForm.website || 'www.adventuretours.com', isLink: true },
                     { label: 'Description', value: profileForm.description || 'Guided trekking, camping experiences and nature activities.' }
-                  ].map((field, i) => (
-                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '200px 1fr', padding: '6px 0', borderBottom: i < 9 ? '1px solid #F8FAFC' : 'none' }}>
+                  ]).map((field, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '220px 1fr', padding: '6px 0', borderBottom: '1px solid #F8FAFC' }}>
                       <span style={{ fontSize: '13px', fontWeight: '700', color: '#64748B' }}>{field.label}</span>
                       <span style={{ fontSize: '13px', fontWeight: '750', color: field.isLink ? '#2563EB' : '#0F172A' }}>
                         {field.value}
