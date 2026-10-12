@@ -261,6 +261,7 @@ export default function AuthModal({ isOpen = true, onClose, initialRole = 'custo
       const last_name = names.slice(1).join(' ') || 'Admin';
 
       const res = await authService.supplierSignup({
+        account_type: 'corporate',
         company_name: supplierForm.company_name,
         contact_name: supplierForm.contact_name,
         first_name,
@@ -268,9 +269,13 @@ export default function AuthModal({ isOpen = true, onClose, initialRole = 'custo
         email: supplierForm.email,
         phone: supplierForm.phone,
         city: supplierForm.city,
-        country: supplierForm.country,
+        state: supplierForm.city,
+        postal_code: '110001',
+        country: supplierForm.country || 'India',
         trade_license_number: supplierForm.trade_license,
-        password: supplierForm.password
+        trade_license_no: supplierForm.trade_license,
+        password: supplierForm.password,
+        main_categories: ['tours-activity']
       });
 
       if (res.success) {

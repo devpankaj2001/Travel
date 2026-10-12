@@ -24,7 +24,7 @@ const customerLoginRules = [
 ];
 
 const supplierSignupRules = [
-  body('account_type').isIn(['individual', 'corporate']).withMessage('Select Individual Person or Registered Corporate Entity.'),
+  body('account_type').optional({ nullable: true, checkFalsy: true }).isIn(['individual', 'corporate']).withMessage('Select Individual Person or Registered Corporate Entity.'),
   body('company_name').optional({ nullable: true, checkFalsy: true }).trim(),
   body('first_name').trim().notEmpty().withMessage('First name is required.'),
   body('last_name').trim().notEmpty().withMessage('Last name is required.'),

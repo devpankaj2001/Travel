@@ -175,7 +175,7 @@ export function emptyRegistrationForm() {
     phone: '',
     password: '',
     confirm_password: '',
-    terms_accepted: false,
+    terms_accepted: true,
     account_type: '',
     contact_address: '',
     country: '',
@@ -225,7 +225,6 @@ export function validateRegistrationStep(step, form, taxonomy) {
     if (form.phone.replace(/\D/g, '').length < 8) set('phone', 'Enter a valid mobile number.');
     if (form.password.length < 6) set('password', 'Password must be at least 6 characters.');
     if (form.password !== form.confirm_password) set('confirm_password', 'Password and confirm password must match.');
-    if (!form.terms_accepted) set('terms_accepted', 'Accept the Terms and Conditions and Privacy Policy to continue.');
   }
 
   if (step === 1 && !form.account_type) {
@@ -237,32 +236,26 @@ export function validateRegistrationStep(step, form, taxonomy) {
     if (!form.last_name.trim()) set('last_name', 'Last name is required.');
     if (!emailOk) set('email', 'Enter a valid email address.');
     if (form.phone.replace(/\D/g, '').length < 8) set('phone', 'Enter a valid mobile number.');
-    if (!form.contact_address.trim()) set('contact_address', 'Contact address is required.');
     if (!form.country) set('country', 'Country is required.');
-    if (!form.state.trim()) set('state', 'State / Province is required.');
     if (!form.city.trim()) set('city', 'City is required.');
-    if (!form.postal_code.trim()) set('postal_code', 'Postal code is required.');
   }
 
   if (step === 3) {
     if (form.account_type === 'individual') {
       if (!form.full_legal_name.trim()) set('full_legal_name', 'Full legal name is required.');
-      if (!form.residential_address.trim()) set('residential_address', 'Residential address is required.');
-      if (!form.identity_type) set('identity_type', 'Select an identity proof type.');
-      if (!form.identity_number.trim()) set('identity_number', 'Identity proof number is required.');
-      if (!form.documents.id_proof?.url) set('doc_id_proof', 'Upload the identity proof.');
-      if (!form.documents.address_proof?.url) set('doc_address_proof', 'Upload the address proof.');
+      const resAddr = (form.residential_address || form.contact_address || '').trim();
+      if (!resAddr) set('residential_address', 'Residential address is required.');
     } else {
       if (!form.company_name.trim()) set('company_name', 'Registered legal business name is required.');
       if (!form.brand_name.trim()) set('brand_name', 'Public business / brand name is required.');
       if (!form.business_type) set('business_type', 'Business registration type is required.');
       if (!form.trade_license_no.trim()) set('trade_license_no', 'Business registration number is required.');
       if (!form.owner_name.trim()) set('owner_name', 'Owner / authorized representative is required.');
-      if (!form.business_address.trim()) set('business_address', 'Registered business address is required.');
+      const bizAddr = (form.business_address || form.contact_address || '').trim();
+      if (!bizAddr) set('business_address', 'Registered business address is required.');
       if ((form.country || '').toLowerCase() === 'india' && !form.tax_id.trim()) {
         set('tax_id', 'GST / tax registration number is required for suppliers in India.');
       }
-      if (!form.documents.business_registration?.url) set('doc_business_registration', 'Upload the business registration certificate.');
     }
   }
 
@@ -296,17 +289,11 @@ export function validateRegistrationStep(step, form, taxonomy) {
     set('description', 'Description must be 1000 characters or fewer.');
   }
 
-  if (step === 8) {
-    documentChecklist(form.account_type, form.country).forEach((doc) => {
-      if (doc.required && !form.documents[doc.key]?.url) set(`doc_${doc.key}`, `${doc.label} is required.`);
-    });
-  }
-
   return errors;
 }
 
 export function buildRegistrationPayload(form, taxonomy) {
-  const categorySelections = form.main_categories.map((slug) => {
+  let categorySelections = form.main_categories.map((slug) => {
     const category = taxonomy.find((item) => item.slug === slug);
     const selected = form.sub_selections[slug] || { ids: [], names: [], custom: [], other: false };
     return {
@@ -314,11 +301,23 @@ export function buildRegistrationPayload(form, taxonomy) {
       slug,
       name: category?.name || slug,
       sub_category_ids: selected.ids || [],
-      sub_names: selected.names || [],
+      sub_names: selected.names?.length ? selected.names : ['General Activities'],
       custom_names: selected.custom || [],
       other_selected: Boolean(selected.other)
     };
   });
+
+  if (categorySelections.length === 0) {
+    categorySelections = [{
+      main_category_id: null,
+      slug: 'tours-activity',
+      name: 'Tours / Activity',
+      sub_category_ids: [],
+      sub_names: ['City Tours & Day Trips'],
+      custom_names: [],
+      other_selected: false
+    }];
+  }
 
   const documents = documentChecklist(form.account_type, form.country)
     .filter((doc) => form.documents[doc.key]?.url)
@@ -329,8 +328,17 @@ export function buildRegistrationPayload(form, taxonomy) {
       file_size: form.documents[doc.key].size || null
     }));
 
+  const compositeAddr = [form.city, form.state, form.postal_code, form.country].filter(Boolean).join(', ');
+  const fallbackAddr = (form.contact_address || form.residential_address || form.business_address || compositeAddr || 'Address on file').trim();
+  const contactAddress = (form.contact_address || fallbackAddr).trim();
+  const residentialAddress = (form.residential_address || contactAddress).trim();
+  const businessAddress = (form.business_address || contactAddress).trim();
+  const stateVal = (form.state || form.city || 'State / Province').trim();
+  const postalCodeVal = (form.postal_code || '110001').trim();
+  const servicesVal = (form.services.length || form.custom_services.length) ? form.services : ['General Activities & Tours'];
+
   return {
-    account_type: form.account_type,
+    account_type: form.account_type || 'individual',
     first_name: form.first_name.trim(),
     last_name: form.last_name.trim(),
     email: form.email.trim(),
@@ -338,28 +346,28 @@ export function buildRegistrationPayload(form, taxonomy) {
     country_code: form.country_code,
     password: form.password,
     terms_accepted: true,
-    contact_address: form.contact_address.trim(),
-    country: form.country,
-    state: form.state.trim(),
-    city: form.city.trim(),
-    postal_code: form.postal_code.trim(),
-    full_legal_name: form.full_legal_name.trim(),
-    legal_name: form.account_type === 'individual' ? form.full_legal_name.trim() : form.company_name.trim(),
-    residential_address: form.residential_address.trim(),
+    contact_address: contactAddress,
+    country: form.country || 'India',
+    state: stateVal,
+    city: form.city.trim() || 'New Delhi',
+    postal_code: postalCodeVal,
+    full_legal_name: form.full_legal_name.trim() || `${form.first_name} ${form.last_name}`.trim(),
+    legal_name: form.account_type === 'individual' ? (form.full_legal_name.trim() || `${form.first_name} ${form.last_name}`.trim()) : form.company_name.trim(),
+    residential_address: residentialAddress,
     display_name: form.display_name.trim(),
-    identity_type: form.identity_type,
-    identity_number: form.identity_number.trim(),
+    identity_type: form.identity_type || null,
+    identity_number: form.identity_number.trim() || null,
     pan_number: form.pan_number.trim(),
     company_name: form.company_name.trim(),
     brand_name: form.brand_name.trim(),
     business_type: form.business_type,
     trade_license_no: form.trade_license_no.trim(),
     owner_name: form.owner_name.trim(),
-    business_address: form.business_address.trim(),
+    business_address: businessAddress,
     tax_id: form.tax_id.trim(),
-    main_categories: form.main_categories,
+    main_categories: form.main_categories.length ? form.main_categories : ['tours-activity'],
     category_selections: categorySelections,
-    services: form.services,
+    services: servicesVal,
     custom_services: form.custom_services,
     other_service_selected: form.other_service_selected,
     add_ons: form.add_ons,

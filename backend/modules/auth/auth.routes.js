@@ -3,7 +3,7 @@ const router = express.Router();
 const authController = require('./auth.controller');
 const { validate } = require('../../middleware/validation.middleware');
 const { authenticate } = require('../../middleware/auth.middleware');
-const { otpRateLimiter, authRateLimiter } = require('../../middleware/rateLimiter');
+const { otpRateLimiter, otpVerifyRateLimiter, authRateLimiter } = require('../../middleware/rateLimiter');
 const {
   customerSignupRules,
   customerVerifyOtpRules,
@@ -28,7 +28,7 @@ router.post('/login', authRateLimiter, customerLoginRules, validate, authControl
 // Customer Authentication & OTP Verification
 // -------------------------------------------------------------
 router.post('/customer/signup', otpRateLimiter, customerSignupRules, validate, authController.customerSignup);
-router.post('/customer/verify-otp', customerVerifyOtpRules, validate, authController.customerVerifyOtp);
+router.post('/customer/verify-otp', otpVerifyRateLimiter, customerVerifyOtpRules, validate, authController.customerVerifyOtp);
 router.post('/customer/resend-otp', otpRateLimiter, customerResendOtpRules, validate, authController.customerResendOtp);
 router.post('/customer/login', authRateLimiter, customerLoginRules, validate, authController.customerLogin);
 
@@ -36,7 +36,7 @@ router.post('/customer/login', authRateLimiter, customerLoginRules, validate, au
 // Supplier Authentication & Verification
 // -------------------------------------------------------------
 router.post('/supplier/signup', otpRateLimiter, supplierSignupRules, validate, authController.supplierSignup);
-router.post('/supplier/verify-otp', supplierVerifyOtpRules, validate, authController.supplierVerifyOtp);
+router.post('/supplier/verify-otp', otpVerifyRateLimiter, supplierVerifyOtpRules, validate, authController.supplierVerifyOtp);
 router.post('/supplier/resend-otp', otpRateLimiter, authController.supplierResendOtp);
 router.post('/supplier/verify-email', supplierVerifyEmailRules, validate, authController.supplierVerifyEmail);
 router.post('/supplier/login', authRateLimiter, customerLoginRules, validate, authController.supplierLogin);

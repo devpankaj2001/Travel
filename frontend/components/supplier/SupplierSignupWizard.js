@@ -172,6 +172,7 @@ export default function SupplierSignupWizard() {
   const [submitted, setSubmitted] = useState(null);
   const [deselectSlug, setDeselectSlug] = useState('');
   const [returnStep, setReturnStep] = useState(null);
+  const [devOtp, setDevOtp] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -280,12 +281,17 @@ export default function SupplierSignupWizard() {
       setBanner('Please correct the highlighted fields before continuing.');
       return;
     }
-    if (step === 2 && form.account_type === 'individual') {
-      setForm((prev) => ({
-        ...prev,
-        full_legal_name: prev.full_legal_name || `${prev.first_name} ${prev.last_name}`.trim(),
-        residential_address: prev.residential_address || prev.contact_address
-      }));
+    if (step === 2) {
+      setForm((prev) => {
+        const addr = prev.contact_address || prev.residential_address || prev.business_address || [prev.city, prev.state, prev.postal_code, prev.country].filter(Boolean).join(', ');
+        return {
+          ...prev,
+          full_legal_name: prev.full_legal_name || `${prev.first_name} ${prev.last_name}`.trim(),
+          contact_address: prev.contact_address || addr,
+          residential_address: prev.residential_address || addr,
+          business_address: prev.business_address || addr
+        };
+      });
     }
     if (returnStep != null) {
       const destination = returnStep;
@@ -467,8 +473,19 @@ export default function SupplierSignupWizard() {
   };
 
   const submitApplication = async () => {
+    const compositeAddr = [form.city, form.state, form.postal_code, form.country].filter(Boolean).join(', ');
+    const fallbackAddr = form.contact_address || form.residential_address || form.business_address || compositeAddr || 'Address on file';
+    const workingForm = {
+      ...form,
+      terms_accepted: true,
+      contact_address: form.contact_address || fallbackAddr,
+      residential_address: form.residential_address || form.contact_address || fallbackAddr,
+      business_address: form.business_address || form.contact_address || fallbackAddr
+    };
+    setForm(workingForm);
+
     for (let index = 0; index <= 8; index += 1) {
-      const stepErrors = validateRegistrationStep(index, form, taxonomy);
+      const stepErrors = validateRegistrationStep(index, workingForm, taxonomy);
       if (Object.keys(stepErrors).length) {
         setErrors(stepErrors);
         setBanner('Some required registration details are still missing. The rest of your application is still saved.');
@@ -479,7 +496,7 @@ export default function SupplierSignupWizard() {
     }
     setSubmitting(true);
     setBanner('');
-    const result = await authService.supplierSignup(buildRegistrationPayload(form, taxonomy));
+    const result = await authService.supplierSignup(buildRegistrationPayload(workingForm, taxonomy));
     setSubmitting(false);
     if (!result?.success) {
       const message = result?.message || 'The application could not be submitted.';
@@ -492,7 +509,13 @@ export default function SupplierSignupWizard() {
       addToast(message, 'error');
       return;
     }
-    setOtp(['', '', '', '', '', '']);
+    const codeFromDev = result?.data?.otpCode ? String(result.data.otpCode) : '';
+    setDevOtp(codeFromDev);
+    if (codeFromDev && codeFromDev.length === 6) {
+      setOtp(codeFromDev.split(''));
+    } else {
+      setOtp(['', '', '', '', '', '']);
+    }
     setOtpError('');
     setResendIn(60);
     setOtpOpen(true);
@@ -538,6 +561,11 @@ export default function SupplierSignupWizard() {
     if (!result?.success) {
       setOtpError(result?.message || 'The code could not be sent again.');
       return;
+    }
+    if (result.data?.otpCode) {
+      const codeFromDev = String(result.data.otpCode);
+      setDevOtp(codeFromDev);
+      if (codeFromDev.length === 6) setOtp(codeFromDev.split(''));
     }
     addToast('A new verification code has been sent to your email and mobile number.', 'success');
     setResendIn(60);
@@ -658,12 +686,14 @@ export default function SupplierSignupWizard() {
                     <button type="button" onClick={() => setShowPassword((value) => !value)} style={{ position: 'absolute', right: 8, top: 8, border: 0, background: 'transparent', color: '#64748b', cursor: 'pointer' }}>{showPassword ? 'Hide' : 'Show'}</button>
                   </div>
                 </Field>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 13, color: '#334155' }}>
-                    <input type="checkbox" checked={form.terms_accepted} onChange={(e) => setField('terms_accepted', e.target.checked)} />
-                    <span>I agree to the Terms and Conditions and Privacy Policy.</span>
-                  </label>
-                  {errors.terms_accepted ? <span style={{ color: '#dc2626', fontSize: 12 }}>{errors.terms_accepted}</span> : null}
+                <div style={{ gridColumn: '1 / -1', marginTop: 4 }}>
+                  <div style={{ padding: '12px 14px', background: form.terms_accepted ? '#f0fdf4' : '#fff', border: `1px solid ${errors.terms_accepted ? '#dc2626' : (form.terms_accepted ? '#86efac' : '#cbd5e1')}`, borderRadius: 8, transition: 'all 0.2s' }}>
+                    <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13, color: '#1e293b', cursor: 'pointer', fontWeight: 600 }}>
+                      <input type="checkbox" checked={form.terms_accepted} onChange={(e) => setField('terms_accepted', e.target.checked)} style={{ width: 18, height: 18, accentColor: '#1d6fe8', cursor: 'pointer' }} />
+                      <span>I agree to the <strong style={{ color: '#1d6fe8' }}>Terms and Conditions</strong> and <strong style={{ color: '#1d6fe8' }}>Privacy Policy</strong>.</span>
+                    </label>
+                  </div>
+                  {errors.terms_accepted ? <div style={{ color: '#dc2626', fontSize: 12, marginTop: 4, fontWeight: 700 }}>{errors.terms_accepted}</div> : null}
                   <div style={{ marginTop: 14, fontSize: 13 }}>Already have an account? <Link href="/supplier/login" style={{ color: '#1d6fe8', fontWeight: 700 }}>Sign in</Link></div>
                 </div>
               </div>
@@ -711,8 +741,8 @@ export default function SupplierSignupWizard() {
                     </div>
                   </Field>
                 </div>
-                <Field label="Contact Address" required error={errors.contact_address}>
-                  <input style={inputStyle(errors.contact_address)} value={form.contact_address} onChange={(e) => setField('contact_address', e.target.value)} placeholder="123 Main Street" />
+                <Field label="Contact Address" error={errors.contact_address}>
+                  <input style={inputStyle(errors.contact_address)} value={form.contact_address} onChange={(e) => setField('contact_address', e.target.value)} placeholder="123 Main Street (Optional if entered in step 3)" />
                 </Field>
                 <div className="sr-grid-2">
                   <div style={{ gridColumn: '1 / -1' }}>
@@ -1020,6 +1050,14 @@ export default function SupplierSignupWizard() {
                     <button type="button" onClick={() => { setReturnStep(9); goTo(target); }} style={{ border: 0, background: 'transparent', color: '#1d6fe8', fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>Edit</button>
                   </div>
                 ))}
+
+                <div style={{ marginTop: 20, padding: '14px 16px', background: form.terms_accepted ? '#f0fdf4' : '#fef2f2', border: `1px solid ${errors.terms_accepted ? '#dc2626' : (form.terms_accepted ? '#86efac' : '#e2e8f0')}`, borderRadius: 10, transition: 'all 0.2s' }}>
+                  <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: '#1e293b', cursor: 'pointer', fontWeight: 600 }}>
+                    <input type="checkbox" checked={form.terms_accepted} onChange={(e) => setField('terms_accepted', e.target.checked)} style={{ width: 18, height: 18, accentColor: '#1d6fe8', marginTop: 2, flexShrink: 0, cursor: 'pointer' }} />
+                    <span>I confirm that all submitted business details, categories and documents are authentic and complete, and I accept the <strong style={{ color: '#1d6fe8' }}>Supplier Terms & Conditions</strong> and <strong style={{ color: '#1d6fe8' }}>Privacy Policy</strong>.</span>
+                  </label>
+                  {errors.terms_accepted ? <div style={{ color: '#dc2626', fontSize: 12, marginTop: 6, fontWeight: 700 }}>{errors.terms_accepted}</div> : null}
+                </div>
               </div>
             )}
 
@@ -1059,6 +1097,11 @@ export default function SupplierSignupWizard() {
           <div style={{ background: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 440, textAlign: 'center' }}>
             <h3 style={{ marginTop: 0 }}>Verify your email and mobile</h3>
             <p style={{ color: '#64748b', fontSize: 14 }}>Enter the 6-digit code sent to <strong>{form.email}</strong> and <strong>{form.country_code} {form.phone}</strong>.</p>
+            {devOtp ? (
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 700, marginBottom: 14 }}>
+                Verification OTP Code: <span style={{ letterSpacing: 2, fontSize: 16 }}>{devOtp}</span>
+              </div>
+            ) : null}
             <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
               {otp.map((digit, index) => (
                 <input

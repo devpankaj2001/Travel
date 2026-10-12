@@ -39,13 +39,14 @@ export default function Navbar() {
       top: 0,
       zIndex: 100,
       boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.03)',
-      fontFamily: "'Manrope', -apple-system, sans-serif"
+      fontFamily: "'Manrope', -apple-system, sans-serif",
+      flexShrink: 0
     }}>
       <div className="container" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '74px',
+        height: pathname === '/login' ? '60px' : '74px',
         maxWidth: '1280px',
         margin: '0 auto',
         padding: '0 24px'

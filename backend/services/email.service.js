@@ -51,7 +51,7 @@ const sendEmail = async ({ to, subject, html, text, userId = null }) => {
       console.log(`From: ${from}`);
       console.log(`To: ${to}`);
       console.log(`Subject: ${subject}`);
-      console.log(`Body Snippet: ${(text || html.replace(/<[^>]*>?/gm, '')).substring(0, 120)}...`);
+      console.log(`Content:\n${(text || html.replace(/<[^>]*>?/gm, '')).trim()}`);
       console.log(`======================================================================\n`);
     } else {
       console.warn('[Email Warning] No SMTP transport configured and fallback logging is disabled.');
@@ -130,21 +130,89 @@ const sendPasswordResetEmail = async ({ user, resetToken }) => {
 };
 
 /**
- * Send Supplier Account Status update notification
+ * Send Supplier Account Status / Remark update notification
  */
-const sendSupplierStatusEmail = async ({ user, status, reason = null }) => {
-  const subject = `Supplier Application Update: ${status.toUpperCase()} - ${config.app.name}`;
+const sendSupplierStatusEmail = async ({ user, status, reason = null, reviewerEmail = null }) => {
+  const portalUrl = `${config.app.frontendUrl}/supplier/dashboard`;
+  let subject = `Supplier Application Update: ${status ? status.replace(/_/g, ' ').toUpperCase() : 'REVIEW NOTE'} - ${config.app.name}`;
+  let statusBadgeColor = '#2563eb';
+  let statusTitle = `Application Status: ${status ? status.replace(/_/g, ' ').toUpperCase() : 'Updated'}`;
+  let actionPrompt = '';
+
+  if (status === 'approved') {
+    subject = `🎉 Supplier Application Approved - ${config.app.name}`;
+    statusBadgeColor = '#16a34a';
+    statusTitle = 'Congratulations! Your Supplier Application is Approved';
+    actionPrompt = `<p>Your supplier account has been activated. You can now access your dashboard to view your profile and manage offerings.</p>`;
+  } else if (status === 'rejected') {
+    subject = `Supplier Application Update - ${config.app.name}`;
+    statusBadgeColor = '#dc2626';
+    statusTitle = 'Supplier Application Status: Rejected';
+    actionPrompt = `<p>Our verification team has reviewed your application and was unable to approve it at this time.</p>`;
+  } else if (status === 'documents_required') {
+    subject = `Action Required: Additional Verification Documents Requested - ${config.app.name}`;
+    statusBadgeColor = '#d97706';
+    statusTitle = 'Action Required: Additional Documents / Information Needed';
+    actionPrompt = `
+      <p style="color: #b45309; font-weight: bold;">
+        Our compliance team reviewed your application and needs additional or updated documentation before proceeding with approval.
+      </p>
+      <div style="margin: 20px 0;">
+        <a href="${portalUrl}" style="background-color: #d97706; color: #ffffff; padding: 12px 22px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+          Upload Requested Documents
+        </a>
+      </div>
+    `;
+  } else if (status === 'under_review') {
+    subject = `Supplier Application Update: Under Review - ${config.app.name}`;
+    statusBadgeColor = '#0284c7';
+    statusTitle = 'Supplier Application Under Verification';
+    actionPrompt = `<p>Your application and documents are currently under review by our operations and legal team.</p>`;
+  }
+
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-      <h2>Supplier Application Status: <span style="color: ${status === 'approved' ? '#16a34a' : '#dc2626'};">${status.toUpperCase()}</span></h2>
-      <p>Hello <strong>${user.first_name}</strong>,</p>
-      <p>Your supplier account status has been updated to <strong>${status}</strong> by our operations team.</p>
-      ${reason ? `<p><strong>Notes:</strong> ${reason}</p>` : ''}
-      <p>Thank you,<br/>${config.app.name} Operations Team</p>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 10px; background-color: #ffffff;">
+      <h2 style="color: #1e293b; margin-top: 0; font-size: 20px;">${statusTitle}</h2>
+      <p style="font-size: 14px; color: #334155;">Hello <strong>${user.first_name || 'Partner'}</strong>,</p>
+      ${actionPrompt}
+      ${reason ? `
+        <div style="background-color: #f8fafc; border-left: 4px solid ${statusBadgeColor}; padding: 14px 16px; margin: 18px 0; border-radius: 4px;">
+          <strong style="color: #0f172a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Admin Review Remarks / Instructions:</strong>
+          <p style="margin: 6px 0 0; color: #334155; font-size: 14px; line-height: 1.5; white-space: pre-wrap;">${reason}</p>
+        </div>
+      ` : ''}
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+        <p style="font-size: 13px; color: #64748b; margin: 0 0 6px;">You can view your status anytime at: <a href="${portalUrl}" style="color: #2563eb;">${portalUrl}</a></p>
+        <p style="font-size: 12px; color: #94a3b8; margin: 0;">Thank you,<br/><strong>${config.app.name} Compliance & Operations Team</strong></p>
+      </div>
     </div>
   `;
 
-  return sendEmail({ to: user.email, subject, html, text: `Status: ${status}. ${reason || ''}`, userId: user.id });
+  const text = `Hello ${user.first_name || 'Partner'}, your supplier application status is: ${status || 'Updated'}. Remarks: ${reason || 'None'}. Portal: ${portalUrl}`;
+
+  return sendEmail({ to: user.email, subject, html, text, userId: user.id });
+};
+
+/**
+ * Notify admin team when supplier re-uploads/submits requested documents
+ */
+const sendAdminSupplierDocumentsResubmittedEmail = async ({ admin, supplier, reviewUrl }) => {
+  const subject = `Documents Resubmitted: ${supplier.company_name} - Pending Re-verification`;
+  const text = `Supplier ${supplier.company_name} (Ref: ${supplier.application_reference || supplier.id}) has uploaded requested verification documents. Review at: ${reviewUrl}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="color: #0d9488; margin-top: 0;">Requested Documents Resubmitted</h2>
+      <p>Hello Admin Team,</p>
+      <p>Supplier <strong>${supplier.company_name}</strong> has uploaded the requested verification documents and is awaiting re-verification.</p>
+      <p><strong>Reference:</strong> ${supplier.application_reference || supplier.id}</p>
+      <p style="margin: 20px 0;">
+        <a href="${reviewUrl}" style="background-color: #0d9488; color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+          Review Resubmitted Documents
+        </a>
+      </p>
+    </div>
+  `;
+  return sendEmail({ to: admin.email, subject, html, text, userId: admin.id });
 };
 
 /**
@@ -261,6 +329,7 @@ module.exports = {
   sendPasswordResetEmail,
   sendSupplierStatusEmail,
   sendSupplierApplicationReceivedEmail,
-  sendAdminSupplierApplicationEmail
+  sendAdminSupplierApplicationEmail,
+  sendAdminSupplierDocumentsResubmittedEmail
 };
 

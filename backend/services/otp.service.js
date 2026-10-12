@@ -39,16 +39,16 @@ const generateOtp = async ({ userId = null, email = null, phone = null, purpose 
       rateParams
     );
 
-    // 2. Rate limiting check (TASK-S1-04): Max 3 requests per 10 minutes
+    // 2. Rate limiting check: Max 3 requests per 1 minute
     const recent = await query(
       `SELECT COUNT(*) AS count FROM otps 
        WHERE (${rateConds.join(' OR ')}) 
          AND purpose = ? 
-         AND created_at >= NOW() - INTERVAL 10 MINUTE`,
+         AND created_at >= NOW() - INTERVAL 1 MINUTE`,
       [...rateParams, purpose]
     );
     if (recent[0] && recent[0].count >= 3) {
-      const err = new Error('Too many OTP requests. Maximum 3 requests allowed per 10 minutes.');
+      const err = new Error('Too many OTP requests. Maximum 3 requests allowed per 1 minute. Please wait 1 minute before requesting again.');
       err.statusCode = 429;
       throw err;
     }
@@ -173,13 +173,13 @@ const verifyOtp = async ({ email = null, phone = null, code, purpose = 'supplier
     const newFailedAttempts = (otpRecord.failed_attempts || otpRecord.attempts || 0) + 1;
 
     if (newFailedAttempts >= 5) {
-      // 5 wrong attempts -> block account for 10 minutes
+      // 5 wrong attempts -> block account for 15 minutes
       await query(
         `UPDATE otps 
          SET failed_attempts = ?, 
              attempts = ?, 
              is_blocked = 1, 
-             blocked_until = DATE_ADD(NOW(), INTERVAL 10 MINUTE), 
+             blocked_until = DATE_ADD(NOW(), INTERVAL 15 MINUTE), 
              is_used = TRUE 
          WHERE id = ?`,
         [newFailedAttempts, newFailedAttempts, otpRecord.id]
@@ -189,7 +189,7 @@ const verifyOtp = async ({ email = null, phone = null, code, purpose = 'supplier
         success: false,
         isBlocked: true,
         remainingAttempts: 0,
-        message: 'Too many wrong OTP attempts (5/5). Your account is temporarily blocked for 10 minutes. Please try again after 10 minutes.'
+        message: 'Too many wrong OTP attempts (5/5). Your account is temporarily blocked for 15 minutes. Please try again after 15 minutes.'
       };
     } else {
       await query(

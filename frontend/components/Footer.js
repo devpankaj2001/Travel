@@ -21,12 +21,17 @@ export default function Footer() {
   return (
     <footer style={{
       borderTop: '1px solid rgba(15, 23, 42, 0.08)',
-      padding: '36px 0',
+      height: pathname === '/login' ? '54px' : 'auto',
+      padding: pathname === '/login' ? '0' : '36px 0',
       background: '#FFFFFF',
-      fontFamily: "'Manrope', -apple-system, sans-serif"
+      fontFamily: "'Manrope', -apple-system, sans-serif",
+      display: 'flex',
+      alignItems: 'center',
+      flexShrink: 0
     }}>
       <div className="container" style={{
         maxWidth: '1280px',
+        width: '100%',
         margin: '0 auto',
         padding: '0 24px',
         display: 'flex',

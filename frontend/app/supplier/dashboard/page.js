@@ -54,7 +54,12 @@ import {
   ChevronLeft,
   MoreVertical,
   Globe,
-  Tag
+  Tag,
+  BarChart3,
+  XCircle,
+  ChevronDown,
+  Megaphone,
+  ArrowUp
 } from 'lucide-react';
 
 export default function SupplierDashboardPage() {
@@ -112,6 +117,38 @@ export default function SupplierDashboardPage() {
   // Document Upload Form
   const [selectedFiles, setSelectedFiles] = useState([]);
   const fileInputRef = useRef(null);
+  const [docUploadType, setDocUploadType] = useState('id_proof');
+  const [docUploadFile, setDocUploadFile] = useState(null);
+  const [docUploading, setDocUploading] = useState(false);
+
+  const handleDocUpload = async (e) => {
+    e.preventDefault();
+    if (!docUploadFile) {
+      addToast('Please select a document file to upload.', 'error');
+      return;
+    }
+    setDocUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('document_type', docUploadType);
+      formData.append('document_name', docUploadFile.name);
+      formData.append('file', docUploadFile);
+
+      const res = await authService.uploadSupplierDocument(formData);
+      if (res.success) {
+        addToast('Document uploaded successfully! Submitted for admin re-verification.', 'success');
+        setDocUploadFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        await loadData();
+      } else {
+        addToast(res.message || 'Failed to upload document', 'error');
+      }
+    } catch (err) {
+      addToast(err?.message || 'Error uploading document', 'error');
+    } finally {
+      setDocUploading(false);
+    }
+  };
 
   // Profile Form
   const [profileForm, setProfileForm] = useState({
@@ -389,8 +426,18 @@ export default function SupplierDashboardPage() {
     loadData();
   }, []);
 
-  const status = supplier?.status || 'under_review';
-  const isPending = status === 'under_review' || status === 'pending_verification' || status === 'pending' || status === 'documents_required';
+  const rawStatus = (supplier?.status || user?.supplier_status || 'pending').toLowerCase();
+  const isApproved = rawStatus === 'approved';
+  const isPending = !isApproved;
+  const status = isApproved ? 'approved' : (supplier?.status || 'under_review');
+
+  // Guard activeTab so unverified suppliers cannot access restricted business tabs
+  const allowedPendingTabs = ['overview', 'profile', 'documents', 'verification', 'notifications', 'support', 'settings'];
+  useEffect(() => {
+    if (isPending && !allowedPendingTabs.includes(activeTab)) {
+      setActiveTab('overview');
+    }
+  }, [isPending, activeTab]);
 
   // Navigation Items
   const navItems = isPending
@@ -405,15 +452,18 @@ export default function SupplierDashboardPage() {
       ]
     : [
         { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, badge: null },
+        { id: 'bookings', label: 'Bookings', icon: CalendarCheck, badge: '5' },
         { id: 'activities', label: 'Activities', icon: Compass, badge: null },
-        { id: 'bookings', label: 'Bookings', icon: CalendarCheck, badge: null },
-        { id: 'payouts', label: 'Payments', icon: Wallet, badge: null },
-        { id: 'reviews', label: 'Reports', icon: Star, badge: null },
-        { id: 'documents', label: 'Documents', icon: FileText, badge: null },
-        { id: 'settings', label: 'Settings', icon: Settings, badge: null },
-        { id: 'profile', label: 'My Profile', icon: Building2, badge: null },
+        { id: 'availability', label: 'Availability', icon: Clock, badge: null },
         { id: 'pricing', label: 'Pricing & Commission', icon: CreditCard, badge: null },
-        { id: 'notifications', label: 'Notifications', icon: Bell, badge: null }
+        { id: 'performance', label: 'Performance', icon: TrendingUp, badge: null },
+        { id: 'reviews', label: 'Reviews', icon: Star, badge: null },
+        { id: 'payouts', label: 'Finance', icon: Wallet, badge: null },
+        { id: 'documents', label: 'Documents & Legal', icon: FileText, badge: null },
+        { id: 'messages', label: 'Messages', icon: Mail, badge: '2' },
+        { id: 'notifications', label: 'Notifications', icon: Bell, badge: '3' },
+        { id: 'support', label: 'Support Tickets', icon: HelpCircle, badge: null },
+        { id: 'profile', label: 'Profile & Settings', icon: Settings, badge: null }
       ];
 
   // Open Screen 10 Activity Detail
@@ -614,33 +664,38 @@ export default function SupplierDashboardPage() {
         zIndex: 40
       }}>
         {/* Brand & Nav */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '24px 16px 16px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '20px 14px 12px' }}>
 
-          {/* Logo matching Screenshots: "T TravelHub" */}
-          <div style={{ marginBottom: '24px', paddingLeft: '8px' }}>
-            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                backgroundColor: '#333F70',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#D6F5EE',
-                boxShadow: '0 2px 8px rgba(51, 63, 112, 0.2)'
-              }}>
-                <Compass size={20} />
-              </div>
-              <div>
-                <span style={{ fontSize: '18px', fontWeight: '900', color: '#FFFFFF', letterSpacing: '-0.5px', display: 'block', lineHeight: 1.1 }}>
+          {/* Logo matching Screenshot: TravelHub */}
+          <div style={{ marginBottom: '16px', padding: '0 6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '19px', fontWeight: '900', color: '#FFFFFF', letterSpacing: '-0.5px' }}>
                   TravelHub
                 </span>
-                <span style={{ fontSize: '10px', fontWeight: '750', color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Supplier Console
-                </span>
-              </div>
-            </Link>
+              </Link>
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}
+                aria-label="Toggle menu"
+              >
+                <Menu size={18} />
+              </button>
+            </div>
+
+            {/* < Supplier Panel breadcrumb header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginTop: '16px',
+              color: '#94A3B8',
+              fontSize: '12.5px',
+              fontWeight: '700'
+            }}>
+              <ChevronLeft size={15} />
+              <span style={{ color: '#E2E8F0', letterSpacing: '0.2px' }}>Supplier Panel</span>
+            </div>
           </div>
 
           {/* Navigation Items */}
@@ -659,30 +714,33 @@ export default function SupplierDashboardPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
                     border: 'none',
                     backgroundColor: isActive ? '#1d6fe8' : 'transparent',
                     color: isActive ? '#FFFFFF' : '#dbe7f5',
                     fontSize: '13px',
-                    fontWeight: isActive ? '800' : '650',
+                    fontWeight: isActive ? '800' : '600',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Icon size={17} style={{ color: isActive ? '#FFFFFF' : '#9fb3c8' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Icon size={16} style={{ color: isActive ? '#FFFFFF' : '#9fb3c8' }} />
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
                     <span style={{
-                      fontSize: '10px',
+                      fontSize: '10.5px',
                       fontWeight: '800',
-                      padding: '2px 7px',
+                      padding: '1px 6px',
                       borderRadius: '9999px',
-                      backgroundColor: isActive ? 'rgba(214, 245, 238, 0.22)' : '#D6F5EE',
-                      color: isActive ? '#D6F5EE' : '#0D9488'
+                      backgroundColor: '#EF4444',
+                      color: '#FFFFFF',
+                      minWidth: '18px',
+                      textAlign: 'center',
+                      lineHeight: '16px'
                     }}>
                       {item.badge}
                     </span>
@@ -692,57 +750,80 @@ export default function SupplierDashboardPage() {
             })}
           </div>
 
-        </div>
-
-        {/* Bottom User Area */}
-        <div style={{ padding: '16px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          {/* "Grow with TravelHub" Card */}
+          <div style={{
+            margin: '20px 2px 10px',
+            padding: '14px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <div style={{
-                width: '32px',
-                height: '32px',
+                width: '20px',
+                height: '20px',
                 borderRadius: '50%',
-                backgroundColor: '#333F70',
-                color: '#D6F5EE',
+                backgroundColor: '#10B981',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: '800',
-                flexShrink: 0
+                color: '#FFFFFF',
+                fontSize: '11px'
               }}>
-                {(profileForm.owner_name?.[0] || 'R').toUpperCase()}
+                🌱
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {profileForm.owner_name || 'Supplier'}
-                </div>
-                <div style={{ fontSize: '10.5px', color: '#9fb3c8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {profileForm.email || profileForm.company_name}
-                </div>
-              </div>
+              <span style={{ fontSize: '12px', fontWeight: '800', color: '#FFFFFF' }}>Grow with TravelHub</span>
             </div>
+            <p style={{ fontSize: '11px', color: '#94A3B8', margin: '0 0 10px 0', lineHeight: 1.35 }}>
+              List unique experiences and reach travellers worldwide.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+              <BarChart3 size={28} style={{ color: '#38BDF8', opacity: 0.85 }} />
+            </div>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('activities'); setActivityView('add_tag'); }}
+              style={{
+                width: '100%',
+                padding: '7px 10px',
+                backgroundColor: '#2563EB',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '7px',
+                fontSize: '11.5px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Add New Activity
+            </button>
           </div>
 
+        </div>
+
+        {/* Bottom Logout Area */}
+        <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <button
             onClick={logout}
             style={{
-              width: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '8px',
-              borderRadius: '8px',
-              border: '1px solid #FEE2E2',
-              backgroundColor: '#FEF2F2',
-              color: '#DC2626',
-              fontSize: '11.5px',
-              fontWeight: '750',
-              cursor: 'pointer'
+              gap: '10px',
+              padding: '6px 0',
+              background: 'none',
+              border: 'none',
+              color: '#94A3B8',
+              fontSize: '13px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              transition: 'color 0.15s ease'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
           >
-            <LogOut size={13} /> Sign Out
+            <LogOut size={16} /> Logout
           </button>
         </div>
       </aside>
@@ -758,12 +839,12 @@ export default function SupplierDashboardPage() {
         minHeight: '100vh'
       }}>
 
-        {/* Top Header Navbar */}
+        {/* Top Header Navbar matching Screenshot */}
         <header style={{
-          height: '68px',
+          height: '64px',
           backgroundColor: '#FFFFFF',
           borderBottom: '1px solid #E2E8F0',
-          padding: '0 32px',
+          padding: '0 28px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -771,24 +852,48 @@ export default function SupplierDashboardPage() {
           top: 0,
           zIndex: 30
         }}>
-          <div>
-            <span style={{ fontSize: '18px', fontWeight: '850', color: '#0F172A' }}>
-              {activeTab === 'overview' && 'Dashboard'}
-              {activeTab === 'profile' && 'Supplier Profile'}
-              {activeTab === 'activities' && (activityView === 'list' ? 'My Activities' : activityView === 'add_tag' ? 'Add / Tag Existing Activity' : 'Activity Detail')}
-              {activeTab === 'bookings' && 'Orders'}
-              {activeTab === 'pricing' && 'Pricing & Commission'}
-              {activeTab === 'payouts' && 'Earnings & Settlements'}
-              {activeTab === 'reviews' && 'Reviews & Performance'}
-              {activeTab === 'documents' && 'Documents & Legal'}
-              {activeTab === 'settings' && 'Account Settings'}
-            </span>
+          {/* Left: Close icon + Search input */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, maxWidth: '520px' }}>
+            <button
+              type="button"
+              style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+              aria-label="Close or Reset"
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              backgroundColor: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '10px',
+              padding: '8px 14px',
+              width: '100%',
+              maxWidth: '420px'
+            }}>
+              <Search size={16} style={{ color: '#94A3B8', flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Search bookings, activities, or help..."
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  backgroundColor: 'transparent',
+                  fontSize: '13px',
+                  color: '#0F172A',
+                  width: '100%'
+                }}
+              />
+            </div>
           </div>
 
-          {/* Right Header: Notification & Profile Pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Right: Notifications, Help, Profile Pill */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* Notification Bell */}
             <button
-              onClick={() => addToast('3 new notifications received', 'info')}
+              onClick={() => addToast('3 new supplier notifications', 'info')}
               style={{
                 position: 'relative',
                 background: 'none',
@@ -797,45 +902,89 @@ export default function SupplierDashboardPage() {
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                padding: '6px'
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px'
               }}
+              title="Notifications"
             >
               <Bell size={18} />
               <span style={{
                 position: 'absolute',
                 top: '4px',
                 right: '4px',
-                width: '7px',
-                height: '7px',
+                width: '16px',
+                height: '16px',
                 backgroundColor: '#EF4444',
-                borderRadius: '50%'
-              }} />
+                color: '#FFFFFF',
+                borderRadius: '50%',
+                fontSize: '10px',
+                fontWeight: '800',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                3
+              </span>
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: '#333F70',
-                color: '#D6F5EE',
+            {/* Help Question Icon */}
+            <button
+              onClick={() => setActiveTab('support')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748B',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: '800'
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px'
+              }}
+              title="Help & Support"
+            >
+              <HelpCircle size={19} />
+            </button>
+
+            {/* Profile Avatar Pill */}
+            <div
+              onClick={() => setActiveTab('profile')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '4px 8px',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                backgroundColor: '#2563EB',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '13.5px',
+                fontWeight: '800',
+                flexShrink: 0
               }}>
                 {(profileForm.owner_name?.[0] || 'R').toUpperCase()}
               </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A', lineHeight: 1.2 }}>
-                  {profileForm.owner_name || user?.first_name || 'Supplier'}
+              <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
+                <div style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>
+                  {profileForm.owner_name || 'Rahul Sharma'}
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748B' }}>
-                  {isPending ? 'Pending approval' : profileForm.email}
+                  {profileForm.company_name || 'Sunrise Tours Pvt. Ltd.'}
                 </div>
-                {!isPending ? <div style={{ fontSize: '11px', color: '#1d6fe8', fontWeight: 800 }}>Supplier</div> : null}
               </div>
+              <ChevronDown size={14} style={{ color: '#94A3B8', marginLeft: '2px' }} />
             </div>
           </div>
         </header>
@@ -847,7 +996,241 @@ export default function SupplierDashboardPage() {
           {/* TAB 1: OVERVIEW (SCREEN 5: PENDING APPROVAL OR SCREEN 6: APPROVED) */}
           {/* =================================================================== */}
           {(activeTab === 'overview' || activeTab === 'verification') && (
-            isPending ? (
+            status === 'suspended' ? (
+              /* SCREEN 1: SUPPLIER DASHBOARD - SUSPENDED VIEW (MATCHING SCREENSHOT) */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+                
+                {/* Header matching Screen 1 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '22px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                      Good Morning, {profileForm.owner_name?.split(' ')[0] || 'Rahul Sharma'}
+                    </h2>
+                    <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0' }}>
+                      Here&apos;s an overview of your supplier account.
+                    </p>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: '600' }}>
+                    Last Updated 12 Oct 2026, 10:30 AM
+                  </div>
+                </div>
+
+                {/* ACCOUNT SUSPENDED Red Banner Card */}
+                <div style={{
+                  backgroundColor: '#FEF2F2',
+                  border: '1.5px solid #FECACA',
+                  borderRadius: '16px',
+                  padding: '24px 28px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '20px',
+                  flexWrap: 'wrap',
+                  boxShadow: '0 4px 16px rgba(220, 38, 38, 0.04)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                    <div style={{
+                      width: '54px',
+                      height: '54px',
+                      borderRadius: '50%',
+                      backgroundColor: '#FEE2E2',
+                      border: '2px solid #FCA5A5',
+                      color: '#DC2626',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <AlertTriangle size={28} strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '900', color: '#991B1B', margin: 0, letterSpacing: '0.5px' }}>
+                        ACCOUNT SUSPENDED
+                      </h3>
+                      <p style={{ fontSize: '13px', color: '#475569', margin: '4px 0 2px' }}>
+                        Your supplier account has been suspended.
+                      </p>
+                      <div style={{ fontSize: '12px', color: '#64748B' }}>
+                        <strong>Reason:</strong> {supplier?.approval_notes || 'Policy / Compliance Review'}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#94A3B8', marginTop: '2px' }}>
+                        Suspended on: 12 Oct 2026, 10:30 AM
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = document.getElementById('affected-bookings-table');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        backgroundColor: '#1d6fe8',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontWeight: '800',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      View Affected Bookings
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => addToast('Support channel opened: support@travelhub.com', 'info')}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        backgroundColor: '#FFFFFF',
+                        color: '#0F172A',
+                        fontSize: '13px',
+                        fontWeight: '750',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Contact Support
+                    </button>
+                  </div>
+                </div>
+
+                {/* Booking Restrictions (4 Cards in a row) */}
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: '0 0 14px' }}>
+                    Booking Restrictions
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                    {/* Card 1: New Bookings */}
+                    <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#FEF2F2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <XCircle size={22} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#64748B' }}>New Bookings</div>
+                        <div style={{ fontSize: '15px', fontWeight: '900', color: '#DC2626', marginTop: '2px' }}>Disabled</div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>You cannot receive new bookings.</div>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Existing Bookings */}
+                    <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#FFFBEB', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Clock size={22} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#64748B' }}>Existing Bookings</div>
+                        <div style={{ fontSize: '15px', fontWeight: '900', color: '#D97706', marginTop: '2px' }}>Under Review</div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>Your existing bookings are being reviewed.</div>
+                      </div>
+                    </div>
+
+                    {/* Card 3: Payments */}
+                    <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#FFF7ED', color: '#EA580C', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Wallet size={22} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#64748B' }}>Payments</div>
+                        <div style={{ fontSize: '15px', fontWeight: '900', color: '#EA580C', marginTop: '2px' }}>On Hold</div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>Payments are temporarily on hold.</div>
+                      </div>
+                    </div>
+
+                    {/* Card 4: Payouts */}
+                    <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#FEF2F2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <BarChart3 size={22} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '12px', color: '#64748B' }}>Payouts</div>
+                        <div style={{ fontSize: '15px', fontWeight: '900', color: '#DC2626', marginTop: '2px' }}>Restricted</div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>Payouts are currently restricted.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Affected Upcoming Bookings Table matching Screen 1 */}
+                <div id="affected-bookings-table" style={{ backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+                  <div style={{ padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F1F5F9' }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                      Affected Upcoming Bookings
+                    </h3>
+                    <span onClick={() => addToast('Displaying all affected bookings', 'info')} style={{ fontSize: '12.5px', fontWeight: '750', color: '#1d6fe8', cursor: 'pointer' }}>
+                      View All
+                    </span>
+                  </div>
+
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontWeight: '800' }}>
+                        <th style={{ padding: '12px 20px' }}>Booking ID</th>
+                        <th style={{ padding: '12px 20px' }}>Customer</th>
+                        <th style={{ padding: '12px 20px' }}>Activity</th>
+                        <th style={{ padding: '12px 20px' }}>Travel Date</th>
+                        <th style={{ padding: '12px 20px' }}>Amount</th>
+                        <th style={{ padding: '12px 20px' }}>Status</th>
+                        <th style={{ padding: '12px 20px', textAlign: 'center' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { id: 'BK-10231', customer: 'John Smith', activity: 'Scuba Diving in Goa', date: '25 Oct 2026', amount: '₹5,000', status: 'Under Review' },
+                        { id: 'BK-10245', customer: 'Priya Mehta', activity: 'Desert Safari Dubai', date: '28 Oct 2026', amount: '₹8,500', status: 'Pending' },
+                        { id: 'BK-10256', customer: 'Michael Brown', activity: 'City Tour Mumbai', date: '30 Oct 2026', amount: '₹3,000', status: 'On Hold' },
+                        { id: 'BK-10278', customer: 'Neha Gupta', activity: 'Water Sports Andaman', date: '05 Nov 2026', amount: '₹6,200', status: 'Under Review' },
+                        { id: 'BK-10289', customer: 'David Wilson', activity: 'Heritage Walk Jaipur', date: '10 Nov 2026', amount: '₹4,500', status: 'On Hold' }
+                      ].map((b) => (
+                        <tr key={b.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '12px 20px', fontWeight: '800', color: '#0F172A' }}>{b.id}</td>
+                          <td style={{ padding: '12px 20px', fontWeight: '700', color: '#0F172A' }}>{b.customer}</td>
+                          <td style={{ padding: '12px 20px', color: '#334155' }}>{b.activity}</td>
+                          <td style={{ padding: '12px 20px', color: '#64748B' }}>{b.date}</td>
+                          <td style={{ padding: '12px 20px', fontWeight: '800', color: '#0F172A' }}>{b.amount}</td>
+                          <td style={{ padding: '12px 20px' }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              padding: '3px 9px',
+                              borderRadius: '100px',
+                              fontSize: '11px',
+                              fontWeight: '800',
+                              backgroundColor: b.status === 'Under Review' ? '#FFF7ED' : b.status === 'Pending' ? '#FEF3C7' : '#FEF2F2',
+                              color: b.status === 'Under Review' ? '#EA580C' : b.status === 'Pending' ? '#D97706' : '#DC2626'
+                            }}>
+                              {b.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 20px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => addToast(`Booking ${b.id}: ${b.customer} - ${b.activity} (${b.amount}). Status is ${b.status}.`, 'info')}
+                              style={{
+                                padding: '4px 12px',
+                                borderRadius: '7px',
+                                border: '1px solid #CBD5E1',
+                                backgroundColor: '#FFFFFF',
+                                color: '#0F172A',
+                                fontSize: '11.5px',
+                                fontWeight: '750',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            ) : isPending ? (
               /* SCREEN 5: AFTER REGISTRATION - PENDING APPROVAL SCREEN */
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1050px', margin: '0 auto' }}>
                 <div style={{
@@ -1074,344 +1457,872 @@ export default function SupplierDashboardPage() {
                 </div>
               </div>
             ) : (
-              /* SCREEN 6: SUPPLIER DASHBOARD (AFTER APPROVAL) - 4 STAT KPI CARDS + 6-MONTH CHART + IMPORTANT ALERTS */
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              /* SUPPLIER DASHBOARD (AFTER APPROVAL) - MATCHING SCREENSHOT EXACTLY */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
 
-                {/* Dashboard Welcome Header with Approved Pill, Supplier ID & Date Filter */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                  <div>
-                    <h2 style={{ fontSize: '22px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
-                      Good Morning, {profileForm.owner_name?.split(' ')[0] || 'Rahul'}!
-                    </h2>
-                    <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0' }}>
-                      Here&apos;s an overview of your business performance.
-                    </p>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '4px 12px',
-                      borderRadius: '100px',
-                      backgroundColor: '#DCFCE7',
-                      color: '#16A34A',
-                      fontSize: '11.5px',
-                      fontWeight: '800'
-                    }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#16A34A' }} />
-                      Approved
-                    </span>
-
-                    <span style={{ fontSize: '12px', fontWeight: '750', color: '#64748B' }}>
-                      Supplier ID: SUP-1023
-                    </span>
-
+                {/* ROW 1: Scenic Hero Banner (Left) + Account Status & Action Required (Right) */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1fr) 340px',
+                  gap: '20px',
+                  alignItems: 'stretch'
+                }}>
+                  {/* Left: Scenic Hero Banner */}
+                  <div style={{
+                    backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.25)), url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=80)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center 45%',
+                    borderRadius: '16px',
+                    padding: '24px 28px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '210px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                    position: 'relative'
+                  }}>
+                    {/* Welcome Text Pill */}
                     <div style={{
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      color: '#334155',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: '14px',
+                      padding: '16px 22px',
+                      maxWidth: '520px',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
                     }}>
-                      <Calendar size={13} style={{ color: '#64748B' }} />
-                      01 Oct 2026 - 31 Oct 2026
+                      <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#0F172A', margin: 0 }}>
+                        Good Morning, {profileForm.owner_name?.split(' ')[0] || 'Rahul'} {profileForm.owner_name?.split(' ')[1] || 'Sharma'}! 👋
+                      </h2>
+                      <p style={{ fontSize: '13px', color: '#475569', margin: '6px 0 0', fontWeight: '500' }}>
+                        Manage your activities, bookings and grow your travel business.
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '20px' }}>
+                      <button
+                        onClick={() => { setActiveTab('activities'); setActivityView('add_tag'); }}
+                        style={{
+                          padding: '10px 20px',
+                          borderRadius: '10px',
+                          backgroundColor: '#EA580C',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          fontSize: '13px',
+                          fontWeight: '800',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        Create New Activity
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('activities')}
+                        style={{
+                          padding: '10px 20px',
+                          borderRadius: '10px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(6px)',
+                          color: '#0F172A',
+                          border: 'none',
+                          fontSize: '13px',
+                          fontWeight: '750',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        View Popular Activities
+                      </button>
                     </div>
                   </div>
-                </div>
 
-                {/* Page 18: approved supplier overview */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
-                  {[
-                    ['Total Activities', activitiesList.length],
-                    ['Total Bookings', ordersList.length],
-                    ['Total Earnings', `₹${ordersList.reduce((sum, order) => sum + Number(String(order.amount).replace(/[^\d.]/g, '') || 0), 0).toLocaleString('en-IN')}`],
-                    ['Average Rating', activitiesList.length ? (activitiesList.reduce((sum, item) => sum + Number(item.rating || 0), 0) / activitiesList.length).toFixed(1) : '—']
-                  ].map(([label, value]) => (
-                    <div key={label} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
-                      <div style={{ color: '#64748b', fontSize: 13, fontWeight: 700 }}>{label}</div>
-                      <div style={{ fontSize: 26, fontWeight: 900, marginTop: 6 }}>{value}</div>
+                  {/* Right: Account Status & Action Required Stack */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {/* Account Status Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '14px',
+                      padding: '14px 18px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>
+                          Account Status
+                        </span>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '3px 10px',
+                          borderRadius: '100px',
+                          backgroundColor: '#DCFCE7',
+                          color: '#16A34A',
+                          fontSize: '11px',
+                          fontWeight: '800'
+                        }}>
+                          <Check size={12} strokeWidth={3} />
+                          Approved
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '11.5px', color: '#64748B', margin: '6px 0 8px', lineHeight: 1.4 }}>
+                        Your supplier account is active and verified.
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('profile')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          color: '#2563EB',
+                          fontSize: '11.5px',
+                          fontWeight: '750',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        View Verification Details →
+                      </button>
                     </div>
-                  ))}
-                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 16 }}>
-                  <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ margin: 0, fontSize: 16 }}>Recent Bookings</h3>
-                      <button type="button" onClick={() => setActiveTab('bookings')} style={{ border: 0, background: 'transparent', color: '#1d6fe8', fontWeight: 800, cursor: 'pointer' }}>View all</button>
-                    </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 13 }}>
-                      <thead>
-                        <tr style={{ color: '#64748b', textAlign: 'left' }}>
-                          {['Booking ID', 'Activity', 'Date', 'Amount', 'Status'].map((heading) => <th key={heading} style={{ padding: '8px 6px' }}>{heading}</th>)}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ordersList.slice(0, 5).map((order) => (
-                          <tr key={order.id} style={{ borderTop: '1px solid #e2e8f0' }}>
-                            <td style={{ padding: '8px 6px' }}>{order.id}</td>
-                            <td style={{ padding: '8px 6px' }}>{order.activity}</td>
-                            <td style={{ padding: '8px 6px' }}>{order.date}</td>
-                            <td style={{ padding: '8px 6px' }}>{order.amount}</td>
-                            <td style={{ padding: '8px 6px' }}>{order.status}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ margin: 0, fontSize: 16 }}>Recent Activities</h3>
-                      <button type="button" onClick={() => setActiveTab('activities')} style={{ border: 0, background: 'transparent', color: '#1d6fe8', fontWeight: 800, cursor: 'pointer' }}>View all</button>
-                    </div>
-                    <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-                      {activitiesList.slice(0, 4).map((activity) => (
-                        <div key={activity.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, borderBottom: '1px solid #f1f5f9', paddingBottom: 8 }}>
-                          <div>
-                            <div style={{ fontWeight: 800 }}>{activity.title}</div>
-                            <div style={{ color: '#64748b', fontSize: 12 }}>{activity.category}</div>
-                          </div>
-                          <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'capitalize', color: activity.status === 'active' ? '#15803d' : '#b45309' }}>{activity.status}</span>
+                    {/* Action Required Card */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '14px',
+                      padding: '14px 18px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                      flex: 1
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertTriangle size={15} style={{ color: '#EF4444' }} />
+                          <span style={{ fontSize: '13px', fontWeight: '850', color: '#0F172A' }}>
+                            Action Required
+                          </span>
                         </div>
-                      ))}
+                        <span style={{
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '50%',
+                          backgroundColor: '#EF4444',
+                          color: '#FFFFFF',
+                          fontSize: '10px',
+                          fontWeight: '850',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          5
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {[
+                          { text: '3 bookings require your confirmation', tab: 'bookings', icon: AlertTriangle, color: '#EF4444', bg: '#FEE2E2' },
+                          { text: '2 activities pending approval', tab: 'activities', icon: Clock, color: '#F97316', bg: '#FFEDD5' },
+                          { text: 'Complete bank details for payout', tab: 'payouts', icon: Landmark, color: '#2563EB', bg: '#EFF6FF' },
+                          { text: 'GST certificate expires in 30 days', tab: 'documents', icon: ShieldCheck, color: '#D97706', bg: '#FEF3C7' },
+                          { text: 'New review received (5 ★)', tab: 'reviews', icon: Star, color: '#3B82F6', bg: '#DBEAFE' }
+                        ].map((item, idx) => {
+                          const ItemIcon = item.icon;
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => setActiveTab(item.tab)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                                padding: '4px 0',
+                                cursor: 'pointer',
+                                fontSize: '11.5px',
+                                color: '#1E293B',
+                                fontWeight: '600'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                                <div style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: '5px',
+                                  backgroundColor: item.bg,
+                                  color: item.color,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0
+                                }}>
+                                  <ItemIcon size={12} />
+                                </div>
+                                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {item.text}
+                                </span>
+                              </div>
+                              <ChevronRight size={13} style={{ color: '#94A3B8', flexShrink: 0 }} />
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 4 Stat KPI Cards (Screen 6) */}
+                {/* ROW 2: 4 Stat KPI Cards */}
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(4, 1fr)',
                   gap: '16px'
                 }}>
                   {/* Card 1: Total Bookings */}
-                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '18px 20px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px'
+                  }}>
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '12px',
+                      backgroundColor: '#EFF6FF',
+                      color: '#2563EB',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
                       <CalendarCheck size={22} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#64748B' }}>Total Bookings</div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A' }}>248</span>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#16A34A' }}>+10%</span>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>Total Bookings</div>
+                      <div style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', marginTop: '2px', lineHeight: 1.1 }}>156</div>
+                      <div style={{ fontSize: '11px', fontWeight: '750', color: '#16A34A', marginTop: '4px' }}>
+                        ↑ 18% <span style={{ color: '#94A3B8', fontWeight: '500' }}>vs last month</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Card 2: Total Revenue */}
-                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '10px', backgroundColor: '#F0FDF4', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Wallet size={22} />
+                  {/* Card 2: Total Earnings */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '18px 20px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px'
+                  }}>
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '12px',
+                      backgroundColor: '#DCFCE7',
+                      color: '#16A34A',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '22px',
+                      fontWeight: '800',
+                      flexShrink: 0
+                    }}>
+                      ₹
                     </div>
                     <div>
-                      <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#64748B' }}>Total Revenue</div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A' }}>₹4,80,000</span>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#16A34A' }}>+22%</span>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>Total Earnings</div>
+                      <div style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', marginTop: '2px', lineHeight: 1.1 }}>₹1,24,500</div>
+                      <div style={{ fontSize: '11px', fontWeight: '750', color: '#16A34A', marginTop: '4px' }}>
+                        ↑ 22% <span style={{ color: '#94A3B8', fontWeight: '500' }}>vs last month</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Card 3: Upcoming Bookings */}
-                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '10px', backgroundColor: '#FFFBEB', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Clock size={22} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#64748B' }}>Upcoming Bookings</div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: '2px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A' }}>32</span>
-                        <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#2563EB', cursor: 'pointer' }}>View →</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card 4: Cancelled Bookings */}
-                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '18px 20px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '10px', backgroundColor: '#FEF2F2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <AlertTriangle size={22} />
+                  {/* Card 3: Active Activities */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '18px 20px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px'
+                  }}>
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '12px',
+                      backgroundColor: '#FFEDD5',
+                      color: '#EA580C',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Compass size={22} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#64748B' }}>Cancelled Bookings</div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A' }}>8</span>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#DC2626' }}>-12%</span>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>Active Activities</div>
+                      <div style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', marginTop: '2px', lineHeight: 1.1 }}>24</div>
+                      <div style={{ fontSize: '11px', fontWeight: '750', color: '#16A34A', marginTop: '4px' }}>
+                        ↑ 4 new <span style={{ color: '#94A3B8', fontWeight: '500' }}>this month</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Average Rating */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '18px 20px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px'
+                  }}>
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '12px',
+                      backgroundColor: '#FEE2E2',
+                      color: '#EF4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Star size={22} fill="#EF4444" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>Average Rating</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', lineHeight: 1.1 }}>4.8</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', fontWeight: '500' }}>
+                        (128 reviews)
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Two-Column: Bookings & Revenue Chart (60%) + Important Alerts (40%) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px' }}>
-                  {/* Left: Bookings & Revenue Visual Chart */}
-                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '20px 24px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div>
-                        <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
-                          Bookings & Revenue
-                        </h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '6px', fontSize: '11.5px' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#475569' }}>
-                            <span style={{ width: '10px', height: '10px', backgroundColor: '#38BDF8', borderRadius: '2px' }} />
-                            Bookings
-                          </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#475569' }}>
-                            <span style={{ width: '10px', height: '10px', backgroundColor: '#10B981', borderRadius: '50%' }} />
-                            Revenue (₹)
-                          </span>
-                        </div>
-                      </div>
-
-                      <select
-                        style={{
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid #CBD5E1',
-                          backgroundColor: '#F8FAFC',
-                          fontSize: '11.5px',
-                          fontWeight: '700',
-                          color: '#334155',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <option>Last 6 Months</option>
-                        <option>Last 12 Months</option>
-                        <option>Year 2026</option>
+                {/* ROW 3: Two Overview Charts Side by Side */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '20px'
+                }}>
+                  {/* Chart 1: Bookings Overview */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '20px 22px',
+                    border: '1px solid #E2E8F0'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                        Bookings Overview
+                      </h3>
+                      <select style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #CBD5E1',
+                        backgroundColor: '#FFFFFF',
+                        fontSize: '11.5px',
+                        fontWeight: '700',
+                        color: '#334155',
+                        cursor: 'pointer'
+                      }}>
+                        <option>This Year</option>
+                        <option>Last Year</option>
                       </select>
                     </div>
 
-                    {/* Interactive Graphic Simulation */}
-                    <div style={{ height: '220px', width: '100%', position: 'relative', marginTop: '10px' }}>
-                      <svg viewBox="0 0 500 200" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                    {/* Chart Legend */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '14px', fontSize: '11.5px' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748B', fontWeight: '600' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#7DD3FC' }} />
+                        Total Bookings
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748B', fontWeight: '600' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0284C7' }} />
+                        Confirmed Bookings
+                      </span>
+                    </div>
+
+                    {/* SVG Dual Bar Chart (12 Months) */}
+                    <div style={{ height: '170px', width: '100%', position: 'relative' }}>
+                      <svg viewBox="0 0 540 160" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                         {/* Grid Lines */}
-                        <line x1="40" y1="30" x2="480" y2="30" stroke="#F1F5F9" strokeDasharray="4 4" />
-                        <line x1="40" y1="75" x2="480" y2="75" stroke="#F1F5F9" strokeDasharray="4 4" />
-                        <line x1="40" y1="120" x2="480" y2="120" stroke="#F1F5F9" strokeDasharray="4 4" />
-                        <line x1="40" y1="165" x2="480" y2="165" stroke="#E2E8F0" />
+                        <line x1="30" y1="20" x2="520" y2="20" stroke="#F1F5F9" />
+                        <line x1="30" y1="50" x2="520" y2="50" stroke="#F1F5F9" />
+                        <line x1="30" y1="80" x2="520" y2="80" stroke="#F1F5F9" />
+                        <line x1="30" y1="110" x2="520" y2="110" stroke="#F1F5F9" />
+                        <line x1="30" y1="140" x2="520" y2="140" stroke="#E2E8F0" />
 
-                        {/* Y-Axis Labels */}
-                        <text x="25" y="34" fontSize="10" fill="#94A3B8" textAnchor="end">600</text>
-                        <text x="25" y="79" fontSize="10" fill="#94A3B8" textAnchor="end">400</text>
-                        <text x="25" y="124" fontSize="10" fill="#94A3B8" textAnchor="end">200</text>
-                        <text x="25" y="169" fontSize="10" fill="#94A3B8" textAnchor="end">0</text>
+                        {/* Y-Axis */}
+                        <text x="22" y="24" fontSize="9" fill="#94A3B8" textAnchor="end">40</text>
+                        <text x="22" y="54" fontSize="9" fill="#94A3B8" textAnchor="end">30</text>
+                        <text x="22" y="84" fontSize="9" fill="#94A3B8" textAnchor="end">20</text>
+                        <text x="22" y="114" fontSize="9" fill="#94A3B8" textAnchor="end">10</text>
+                        <text x="22" y="144" fontSize="9" fill="#94A3B8" textAnchor="end">0</text>
 
-                        {/* Bookings Bars (Apr, May, Jun, Jul, Aug, Sep) */}
-                        <rect x="80" y="130" width="16" height="35" rx="3" fill="#67E8F9" />
-                        <rect x="150" y="105" width="16" height="60" rx="3" fill="#38BDF8" />
-                        <rect x="220" y="85" width="16" height="80" rx="3" fill="#38BDF8" />
-                        <rect x="290" y="70" width="16" height="95" rx="3" fill="#0284C7" />
-                        <rect x="360" y="55" width="16" height="110" rx="3" fill="#0284C7" />
-                        <rect x="430" y="45" width="16" height="120" rx="3" fill="#0369A1" />
-
-                        {/* Revenue Curve Line */}
-                        <path
-                          d="M 88 140 Q 158 115 228 92 T 368 60 T 438 48"
-                          fill="none"
-                          stroke="#10B981"
-                          strokeWidth="3"
-                        />
-
-                        {/* Revenue Nodes */}
-                        <circle cx="88" cy="140" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2.5" />
-                        <circle cx="158" cy="115" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2.5" />
-                        <circle cx="228" cy="92" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2.5" />
-                        <circle cx="298" cy="74" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2.5" />
-                        <circle cx="368" cy="60" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2.5" />
-                        <circle cx="438" cy="48" r="4" fill="#FFFFFF" stroke="#10B981" strokeWidth="2.5" />
-
-                        {/* X-Axis Month Labels */}
-                        <text x="88" y="185" fontSize="10.5" fill="#64748B" textAnchor="middle" fontWeight="600">Apr</text>
-                        <text x="158" y="185" fontSize="10.5" fill="#64748B" textAnchor="middle" fontWeight="600">May</text>
-                        <text x="228" y="185" fontSize="10.5" fill="#64748B" textAnchor="middle" fontWeight="600">Jun</text>
-                        <text x="298" y="185" fontSize="10.5" fill="#64748B" textAnchor="middle" fontWeight="600">Jul</text>
-                        <text x="368" y="185" fontSize="10.5" fill="#64748B" textAnchor="middle" fontWeight="600">Aug</text>
-                        <text x="438" y="185" fontSize="10.5" fill="#64748B" textAnchor="middle" fontWeight="600">Sep</text>
+                        {/* Paired Bars for 12 Months: [Total, Confirmed] */}
+                        {[
+                          { m: 'Jan', t: 14, c: 10, x: 45 },
+                          { m: 'Feb', t: 18, c: 13, x: 85 },
+                          { m: 'Mar', t: 16, c: 12, x: 125 },
+                          { m: 'Apr', t: 22, c: 18, x: 165 },
+                          { m: 'May', t: 24, c: 19, x: 205 },
+                          { m: 'Jun', t: 28, c: 22, x: 245 },
+                          { m: 'Jul', t: 26, c: 20, x: 285 },
+                          { m: 'Aug', t: 32, c: 24, x: 325 },
+                          { m: 'Sep', t: 38, c: 29, x: 365 },
+                          { m: 'Oct', t: 35, c: 26, x: 405 },
+                          { m: 'Nov', t: 30, c: 24, x: 445 },
+                          { m: 'Dec', t: 34, c: 27, x: 485 }
+                        ].map((d) => {
+                          const hTotal = (d.t / 40) * 120;
+                          const hConf = (d.c / 40) * 120;
+                          return (
+                            <g key={d.m}>
+                              <rect x={d.x} y={140 - hTotal} width="9" height={hTotal} rx="2" fill="#7DD3FC" />
+                              <rect x={d.x + 11} y={140 - hConf} width="9" height={hConf} rx="2" fill="#0284C7" />
+                              <text x={d.x + 10} y="155" fontSize="9.5" fill="#64748B" textAnchor="middle" fontWeight="600">{d.m}</text>
+                            </g>
+                          );
+                        })}
                       </svg>
                     </div>
                   </div>
 
-                  {/* Right: Important Alerts Feed (Screen 6) */}
-                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', padding: '20px 24px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  {/* Chart 2: Earnings Overview */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '20px 22px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}>
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
-                          Important Alerts
+                          Earnings Overview
                         </h3>
-                        <span style={{ fontSize: '11.5px', fontWeight: '750', color: '#2563EB', cursor: 'pointer' }}>
-                          View All →
-                        </span>
+                        <select style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #CBD5E1',
+                          backgroundColor: '#FFFFFF',
+                          fontSize: '11.5px',
+                          fontWeight: '700',
+                          color: '#334155',
+                          cursor: 'pointer'
+                        }}>
+                          <option>This Year</option>
+                          <option>Last Year</option>
+                        </select>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {/* Alert 1 */}
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                          <div style={{ width: '28px', height: '28px', borderRadius: '7px', backgroundColor: '#FEF2F2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <AlertTriangle size={15} />
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '12px', fontWeight: '750', color: '#0F172A' }}>
-                              3 bookings require your action
+                      {/* SVG Line Chart for Earnings */}
+                      <div style={{ height: '140px', width: '100%', position: 'relative', marginTop: '6px' }}>
+                        <svg viewBox="0 0 540 140" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                          {/* Grid Lines */}
+                          <line x1="32" y1="20" x2="520" y2="20" stroke="#F1F5F9" />
+                          <line x1="32" y1="50" x2="520" y2="50" stroke="#F1F5F9" />
+                          <line x1="32" y1="80" x2="520" y2="80" stroke="#F1F5F9" />
+                          <line x1="32" y1="110" x2="520" y2="110" stroke="#E2E8F0" />
+
+                          {/* Y-Axis */}
+                          <text x="26" y="24" fontSize="9" fill="#94A3B8" textAnchor="end">2L</text>
+                          <text x="26" y="54" fontSize="9" fill="#94A3B8" textAnchor="end">1.5L</text>
+                          <text x="26" y="84" fontSize="9" fill="#94A3B8" textAnchor="end">1L</text>
+                          <text x="26" y="114" fontSize="9" fill="#94A3B8" textAnchor="end">50K</text>
+                          <text x="26" y="128" fontSize="9" fill="#94A3B8" textAnchor="end">0</text>
+
+                          {/* Smooth green curve */}
+                          <path
+                            d="M 45 110 C 85 98, 125 90, 165 82 C 205 74, 245 70, 285 62 C 325 60, 365 64, 405 56 C 445 46, 485 36, 510 30"
+                            fill="none"
+                            stroke="#16A34A"
+                            strokeWidth="2.5"
+                          />
+
+                          {/* Points on curve */}
+                          {[
+                            { m: 'Jan', x: 45, y: 110 },
+                            { m: 'Feb', x: 85, y: 98 },
+                            { m: 'Mar', x: 125, y: 90 },
+                            { m: 'Apr', x: 165, y: 82 },
+                            { m: 'May', x: 205, y: 74 },
+                            { m: 'Jun', x: 245, y: 70 },
+                            { m: 'Jul', x: 285, y: 62 },
+                            { m: 'Aug', x: 325, y: 60 },
+                            { m: 'Sep', x: 365, y: 64 },
+                            { m: 'Oct', x: 405, y: 56 },
+                            { m: 'Nov', x: 445, y: 46 },
+                            { m: 'Dec', x: 485, y: 36 }
+                          ].map((pt) => (
+                            <g key={pt.m}>
+                              <circle cx={pt.x} cy={pt.y} r="3.5" fill="#16A34A" stroke="#FFFFFF" strokeWidth="1.5" />
+                              <text x={pt.x} y="132" fontSize="9.5" fill="#64748B" textAnchor="middle" fontWeight="600">{pt.m}</text>
+                            </g>
+                          ))}
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Bottom 3 Summary Metrics */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingTop: '14px',
+                      borderTop: '1px solid #F1F5F9',
+                      marginTop: '6px'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Total Earnings</div>
+                        <div style={{ fontSize: '18px', fontWeight: '900', color: '#16A34A', marginTop: '2px' }}>₹1,24,500</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Commission (15%)</div>
+                        <div style={{ fontSize: '18px', fontWeight: '900', color: '#0F172A', marginTop: '2px' }}>₹18,675</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '700' }}>Net Earnings</div>
+                        <div style={{ fontSize: '18px', fontWeight: '900', color: '#0284C7', marginTop: '2px' }}>₹1,05,825</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROW 4: Recent Bookings Table & My Activities List */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1.45fr) 1fr',
+                  gap: '20px'
+                }}>
+                  {/* Left: Recent Bookings */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '20px 22px',
+                    border: '1px solid #E2E8F0'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                        Recent Bookings
+                      </h3>
+                      <button
+                        onClick={() => setActiveTab('bookings')}
+                        style={{ border: 'none', background: 'none', color: '#2563EB', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                        <thead>
+                          <tr style={{ color: '#64748B', textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
+                            <th style={{ padding: '8px 6px', fontWeight: '750' }}>Booking ID</th>
+                            <th style={{ padding: '8px 6px', fontWeight: '750' }}>Customer</th>
+                            <th style={{ padding: '8px 6px', fontWeight: '750' }}>Activity</th>
+                            <th style={{ padding: '8px 6px', fontWeight: '750' }}>Travel Date</th>
+                            <th style={{ padding: '8px 6px', fontWeight: '750' }}>Amount</th>
+                            <th style={{ padding: '8px 6px', fontWeight: '750' }}>Status</th>
+                            <th style={{ padding: '8px 6px', fontWeight: '750' }}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { id: 'BK-10231', customer: 'John Smith', activity: 'Scuba Diving in Goa', img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=120&q=80', date: '12 Oct 2026', amount: '₹5,000', status: 'Confirmed', statusColor: '#16A34A', statusBg: '#DCFCE7' },
+                            { id: 'BK-10232', customer: 'Priya Mehta', activity: 'Desert Safari Dubai', img: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=120&q=80', date: '14 Oct 2026', amount: '₹8,500', status: 'Pending', statusColor: '#D97706', statusBg: '#FEF3C7' },
+                            { id: 'BK-10233', customer: 'Michael Brown', activity: 'City Tour Mumbai', img: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=120&q=80', date: '15 Oct 2026', amount: '₹3,000', status: 'Confirmed', statusColor: '#16A34A', statusBg: '#DCFCE7' },
+                            { id: 'BK-10234', customer: 'Neha Gupta', activity: 'Water Sports Andaman', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=120&q=80', date: '18 Oct 2026', amount: '₹4,200', status: 'Action Required', statusColor: '#DC2626', statusBg: '#FEE2E2' },
+                            { id: 'BK-10235', customer: 'David Wilson', activity: 'Heritage Walk Jaipur', img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=120&q=80', date: '20 Oct 2026', amount: '₹4,500', status: 'Confirmed', statusColor: '#16A34A', statusBg: '#DCFCE7' }
+                          ].map((bk) => (
+                            <tr key={bk.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                              <td style={{ padding: '10px 6px', fontWeight: '750', color: '#1E293B' }}>{bk.id}</td>
+                              <td style={{ padding: '10px 6px', color: '#334155' }}>{bk.customer}</td>
+                              <td style={{ padding: '10px 6px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <img src={bk.img} alt={bk.activity} style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+                                  <span style={{ fontWeight: '650', color: '#0F172A' }}>{bk.activity}</span>
+                                </div>
+                              </td>
+                              <td style={{ padding: '10px 6px', color: '#64748B' }}>{bk.date}</td>
+                              <td style={{ padding: '10px 6px', fontWeight: '800', color: '#0F172A' }}>{bk.amount}</td>
+                              <td style={{ padding: '10px 6px' }}>
+                                <span style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '2px 8px',
+                                  borderRadius: '100px',
+                                  backgroundColor: bk.statusBg,
+                                  color: bk.statusColor,
+                                  fontSize: '11px',
+                                  fontWeight: '800'
+                                }}>
+                                  {bk.status === 'Confirmed' && <Check size={11} strokeWidth={3} />}
+                                  {bk.status !== 'Confirmed' && <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: bk.statusColor }} />}
+                                  {bk.status}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 6px' }}>
+                                <button
+                                  onClick={() => setActiveTab('bookings')}
+                                  style={{
+                                    padding: '3px 10px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #CBD5E1',
+                                    backgroundColor: '#FFFFFF',
+                                    fontSize: '11px',
+                                    fontWeight: '750',
+                                    color: '#334155',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Right: My Activities */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '20px 22px',
+                    border: '1px solid #E2E8F0'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                        My Activities
+                      </h3>
+                      <button
+                        onClick={() => setActiveTab('activities')}
+                        style={{ border: 'none', background: 'none', color: '#2563EB', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {[
+                        { title: 'Scuba Diving in Goa', price: '₹5,000', status: 'Active', statusBg: '#DCFCE7', statusColor: '#16A34A', img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=120&q=80' },
+                        { title: 'Desert Safari Dubai', price: '₹8,500', status: 'Pending', statusBg: '#FEF3C7', statusColor: '#D97706', img: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=120&q=80' },
+                        { title: 'City Tour Mumbai', price: '₹3,000', status: 'Active', statusBg: '#DCFCE7', statusColor: '#16A34A', img: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=120&q=80' },
+                        { title: 'Water Sports Andaman', price: '₹4,200', status: 'Under Review', statusBg: '#FEF3C7', statusColor: '#D97706', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=120&q=80' },
+                        { title: 'Heritage Walk Jaipur', price: '₹4,500', status: 'Active', statusBg: '#DCFCE7', statusColor: '#16A34A', img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=120&q=80' }
+                      ].map((act, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '6px 0',
+                            borderBottom: idx === 4 ? 'none' : '1px solid #F1F5F9'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <img src={act.img} alt={act.title} style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover' }} />
+                            <div>
+                              <div style={{ fontSize: '12.5px', fontWeight: '750', color: '#0F172A' }}>{act.title}</div>
+                              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>{act.price}</div>
                             </div>
-                            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
-                              These bookings were made before...
-                            </div>
                           </div>
-                          <span style={{ fontSize: '10px', color: '#94A3B8', whiteSpace: 'nowrap' }}>1 hour ago</span>
+                          <span style={{
+                            padding: '2px 8px',
+                            borderRadius: '100px',
+                            backgroundColor: act.statusBg,
+                            color: act.statusColor,
+                            fontSize: '11px',
+                            fontWeight: '800'
+                          }}>
+                            {act.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROW 5: Three Bottom Cards (Recent Reviews, Support Tickets, Important Announcements) */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '20px'
+                }}>
+                  {/* Card 1: Recent Reviews */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '20px 22px',
+                    border: '1px solid #E2E8F0'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                        Recent Reviews
+                      </h3>
+                      <button
+                        onClick={() => setActiveTab('reviews')}
+                        style={{ border: 'none', background: 'none', color: '#2563EB', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{
+                            width: '26px',
+                            height: '26px',
+                            borderRadius: '50%',
+                            backgroundColor: '#3B82F6',
+                            color: '#FFFFFF',
+                            fontSize: '12px',
+                            fontWeight: '800',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            P
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A' }}>Priya Mehta</div>
+                            <div style={{ fontSize: '10.5px', color: '#94A3B8' }}>12 Oct 2026</div>
+                          </div>
                         </div>
 
-                        {/* Alert 2 */}
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                          <div style={{ width: '28px', height: '28px', borderRadius: '7px', backgroundColor: '#FFFBEB', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <AlertCircle size={15} />
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '12px', fontWeight: '750', color: '#0F172A' }}>
-                              GST Certificate expires in 30 days
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
-                              Please update your GST certificate.
-                            </div>
-                          </div>
-                          <span style={{ fontSize: '10px', color: '#94A3B8', whiteSpace: 'nowrap' }}>5 hours ago</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', color: '#F59E0B', margin: '8px 0 6px', fontSize: '13px' }}>
+                          {'★'.repeat(5)}
                         </div>
 
-                        {/* Alert 3 */}
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                          <div style={{ width: '28px', height: '28px', borderRadius: '7px', backgroundColor: '#F0FDF4', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <TrendingUp size={15} />
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '12px', fontWeight: '750', color: '#0F172A' }}>
-                              Your performance score improved
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
-                              Keep up the good work!
-                            </div>
-                          </div>
-                          <span style={{ fontSize: '10px', color: '#94A3B8', whiteSpace: 'nowrap' }}>2 days ago</span>
-                        </div>
+                        <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: 1.45, fontStyle: 'normal' }}>
+                          Amazing experience! Very well organized and professional team. Highly recommended!
+                        </p>
+                      </div>
 
-                        {/* Alert 4 */}
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                          <div style={{ width: '28px', height: '28px', borderRadius: '7px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Star size={15} />
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '12px', fontWeight: '750', color: '#0F172A' }}>
-                              New review received
+                      <img
+                        src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=140&q=80"
+                        alt="Goa Beach"
+                        style={{ width: '64px', height: '64px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Card 2: Support Tickets */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '20px 22px',
+                    border: '1px solid #E2E8F0'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                        Support Tickets
+                      </h3>
+                      <button
+                        onClick={() => setActiveTab('support')}
+                        style={{ border: 'none', background: 'none', color: '#2563EB', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {[
+                        { id: '#ST-1002', subject: 'Payment not received', status: 'Open', statusBg: '#DBEAFE', statusColor: '#1D4ED8', time: '2 hours ago' },
+                        { id: '#ST-1001', subject: 'Activity approval', status: 'In Progress', statusBg: '#E0F2FE', statusColor: '#0284C7', time: '1 day ago' },
+                        { id: '#ST-0998', subject: 'Document verification', status: 'Resolved', statusBg: '#DCFCE7', statusColor: '#16A34A', time: '3 days ago' }
+                      ].map((ticket) => (
+                        <div key={ticket.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', borderBottom: '1px solid #F1F5F9', paddingBottom: '6px' }}>
+                          <div>
+                            <div style={{ fontWeight: '750', color: '#0F172A' }}>
+                              <span style={{ color: '#64748B', marginRight: '6px', fontSize: '11px' }}>{ticket.id}</span>
+                              {ticket.subject}
                             </div>
-                            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
-                              Customer left a 5-star review.
-                            </div>
+                            <div style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '2px' }}>{ticket.time}</div>
                           </div>
-                          <span style={{ fontSize: '10px', color: '#94A3B8', whiteSpace: 'nowrap' }}>2 days ago</span>
+                          <span style={{
+                            padding: '2px 8px',
+                            borderRadius: '100px',
+                            backgroundColor: ticket.statusBg,
+                            color: ticket.statusColor,
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {ticket.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card 3: Important Announcements */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '20px 22px',
+                    border: '1px solid #E2E8F0'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                        Important Announcements
+                      </h3>
+                      <button
+                        onClick={() => addToast('No additional announcements', 'info')}
+                        style={{ border: 'none', background: 'none', color: '#2563EB', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Sparkles size={15} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A' }}>Diwali Season Promotion</div>
+                            <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>10 Oct 2026</span>
+                          </div>
+                          <p style={{ fontSize: '11.5px', color: '#64748B', margin: '3px 0 0', lineHeight: 1.4 }}>
+                            Boost your bookings with special visibility on the platform.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#FEE2E2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Megaphone size={15} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A' }}>Policy Update</div>
+                            <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>08 Oct 2026</span>
+                          </div>
+                          <p style={{ fontSize: '11.5px', color: '#64748B', margin: '3px 0 0', lineHeight: 1.4 }}>
+                            New supplier guidelines effective from 1 Nov 2026.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1537,10 +2448,12 @@ export default function SupplierDashboardPage() {
                 paddingBottom: '2px'
               }}>
                 {[
-                  { id: 'business', label: 'Business Info' },
+                  { id: 'business', label: 'Business Information' },
                   { id: 'contact', label: 'Contact Details' },
                   { id: 'categories', label: 'Categories & Services' },
-                  { id: 'documents', label: 'Documents' }
+                  { id: 'documents', label: 'Documents' },
+                  { id: 'bank', label: 'Bank Details' },
+                  { id: 'status', label: 'Account Status' }
                 ].map(sub => (
                   <button
                     key={sub.id}
@@ -1701,13 +2614,211 @@ export default function SupplierDashboardPage() {
                 </div>
               )}
 
+              {/* Sub-Tab Content: 5. Bank Details */}
+              {profileSubTab === 'bank' && (
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  padding: '24px 28px',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px'
+                }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                    Settlement & Banking Information
+                  </h3>
+                  {[
+                    { label: 'Account Holder Name', value: profileForm.company_name || 'Sunrise Tours Pvt. Ltd.' },
+                    { label: 'Bank Name', value: 'HDFC Bank Ltd.' },
+                    { label: 'Account Number', value: '•••• •••• •••• 8920' },
+                    { label: 'IFSC / SWIFT Code', value: 'HDFC0001234' },
+                    { label: 'Branch Location', value: 'Andheri West, Mumbai' },
+                    { label: 'Account Verification', value: 'Verified for Automated Payouts' }
+                  ].map((field, i) => (
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '220px 1fr', padding: '6px 0', borderBottom: '1px solid #F8FAFC' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: '#64748B' }}>{field.label}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>{field.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Sub-Tab Content: 6. Account Status (Screen 2: Supplier Profile - Account Status & Suspension History) */}
+              {profileSubTab === 'status' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', alignItems: 'start' }}>
+                  {/* Left Column: Business Information Summary Card */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '16px',
+                    padding: '24px 28px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px'
+                  }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: '0 0 4px' }}>
+                      Business Information
+                    </h3>
+
+                    {[
+                      { label: 'Business Name', value: profileForm.company_name || 'Sunrise Tours Pvt. Ltd.' },
+                      { label: 'Owner Name', value: profileForm.owner_name || 'Rahul Sharma' },
+                      { label: 'Email', value: profileForm.email || 'rahul@sunrisetours.com' },
+                      { label: 'Mobile', value: profileForm.phone || '+91 98765 43210' },
+                      { label: 'Business Type', value: profileForm.business_type || 'Private Limited' },
+                      { label: 'GST Number', value: profileForm.tax_id || '27ABCDE1234F1ZZ5' },
+                      { label: 'PAN Number', value: profileForm.pan_number || 'ABCDE1234F' },
+                      { label: 'Business Address', value: profileForm.business_address || '123, MG Road, Andheri, Mumbai - 400001' },
+                      { label: 'Website', value: profileForm.website || 'www.sunrisetours.com', isLink: true },
+                      { label: 'Description', value: profileForm.description || 'We provide guided tours, transport and travel experiences across India and international destinations.' }
+                    ].map((f, i) => (
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', padding: '6px 0', borderBottom: '1px solid #F8FAFC', fontSize: '12.5px' }}>
+                        <span style={{ color: '#64748B', fontWeight: '650' }}>{f.label}</span>
+                        <span style={{ color: f.isLink ? '#1d6fe8' : '#0F172A', fontWeight: '750' }}>{f.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Right Column: Account Status Card & Suspension History Card */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    
+                    {/* Account Status Card matching Screen 2 */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      border: '1px solid #E2E8F0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                          Account Status
+                        </h3>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '3px 10px',
+                          borderRadius: '100px',
+                          backgroundColor: status === 'suspended' ? '#FEE2E2' : '#DCFCE7',
+                          color: status === 'suspended' ? '#DC2626' : '#16A34A',
+                          fontSize: '11px',
+                          fontWeight: '800'
+                        }}>
+                          {status === 'suspended' ? '● Suspended' : '● Approved'}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F8FAFC', paddingBottom: '6px' }}>
+                          <span style={{ color: '#64748B' }}>Suspension Reason</span>
+                          <span style={{ fontWeight: '800', color: '#0F172A' }}>Policy / Compliance Review</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F8FAFC', paddingBottom: '6px' }}>
+                          <span style={{ color: '#64748B' }}>Suspended On</span>
+                          <span style={{ fontWeight: '800', color: '#0F172A' }}>12 Oct 2026, 10:30 AM</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F8FAFC', paddingBottom: '6px' }}>
+                          <span style={{ color: '#64748B' }}>Suspended By</span>
+                          <span style={{ fontWeight: '800', color: '#0F172A' }}>Admin (ID: ADM-001)</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: '#64748B' }}>Expected Review</span>
+                          <span style={{ fontWeight: '800', color: '#0F172A' }}>15 Oct 2026 (Tentative)</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('overview')}
+                          style={{
+                            flex: 1,
+                            padding: '9px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            backgroundColor: '#1d6fe8',
+                            color: '#FFFFFF',
+                            fontSize: '12px',
+                            fontWeight: '800',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          View Suspension Details
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addToast('Support channel opened: support@travelhub.com', 'info')}
+                          style={{
+                            flex: 1,
+                            padding: '9px',
+                            borderRadius: '8px',
+                            border: '1px solid #CBD5E1',
+                            backgroundColor: '#FFFFFF',
+                            color: '#0F172A',
+                            fontSize: '12px',
+                            fontWeight: '750',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Contact Support
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Suspension History Card matching Screen 2 */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      border: '1px solid #E2E8F0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                          Suspension History
+                        </h3>
+                        <span onClick={() => addToast('Showing complete audit history', 'info')} style={{ fontSize: '12px', fontWeight: '750', color: '#1d6fe8', cursor: 'pointer' }}>
+                          View All
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {[
+                          { title: 'Account Suspended', time: '12 Oct 2026, 10:30 AM', desc: 'Policy / Compliance Review by Admin (ADM-001)', color: '#DC2626' },
+                          { title: 'Notice Sent to Supplier', time: '12 Oct 2026, 10:25 AM', desc: 'Suspension notice email sent', color: '#D97706' },
+                          { title: 'Account Under Review', time: '10 Oct 2026, 04:15 PM', desc: 'Compliance documents requested', color: '#2563EB' }
+                        ].map((evt, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                            <div style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: evt.color, marginTop: '5px', flexShrink: 0 }} />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A' }}>{evt.title}</span>
+                                <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>{evt.time}</span>
+                              </div>
+                              <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>{evt.desc}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
           {/* =================================================================== */}
           {/* TAB 3: MANAGE ACTIVITIES (SCREENS 8, 9, 10) */}
           {/* =================================================================== */}
-          {activeTab === 'activities' && (
+          {!isPending && activeTab === 'activities' && (
             <div>
 
               {/* ------------------------------------------------------------- */}
@@ -2493,7 +3604,7 @@ export default function SupplierDashboardPage() {
           {/* =================================================================== */}
           {/* TAB 4: ORDERS LIST (SCREEN 11: ORDERS LIST - SUPPLIER VIEW) */}
           {/* =================================================================== */}
-          {activeTab === 'bookings' && (
+          {!isPending && activeTab === 'bookings' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
               {/* Title Header */}
@@ -2635,9 +3746,10 @@ export default function SupplierDashboardPage() {
           )}
 
           {/* =================================================================== */}
+          {/* =================================================================== */}
           {/* TAB 5: PRICING & COMMISSION DIRECT TAB */}
           {/* =================================================================== */}
-          {activeTab === 'pricing' && (
+          {!isPending && activeTab === 'pricing' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '19px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
@@ -2672,7 +3784,7 @@ export default function SupplierDashboardPage() {
           {/* =================================================================== */}
           {/* TAB 6: EARNINGS & SETTLEMENTS */}
           {/* =================================================================== */}
-          {activeTab === 'payouts' && (
+          {!isPending && activeTab === 'payouts' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <h2 style={{ fontSize: '19px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
                 Earnings & Settlements
@@ -2697,7 +3809,7 @@ export default function SupplierDashboardPage() {
           {/* =================================================================== */}
           {/* TAB 7: REVIEWS & PERFORMANCE */}
           {/* =================================================================== */}
-          {activeTab === 'reviews' && (
+          {!isPending && activeTab === 'reviews' && (
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '28px', border: '1px solid #E2E8F0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
                 <div style={{ fontSize: '38px', fontWeight: '900', color: '#CA8A04' }}>4.6 ★</div>
@@ -2779,6 +3891,94 @@ export default function SupplierDashboardPage() {
                 >
                   <PenTool size={15} /> Review & Execute E-Sign
                 </button>
+              </div>
+
+              {/* Admin Remark / Document Request Notice */}
+              {supplier?.approval_notes && (
+                <div style={{
+                  padding: '18px 22px',
+                  backgroundColor: status === 'documents_required' ? '#FFF7ED' : '#F8FAFC',
+                  borderRadius: '16px',
+                  border: `1.5px solid ${status === 'documents_required' ? '#FDBA74' : '#E2E8F0'}`,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '14px'
+                }}>
+                  <AlertCircle size={22} style={{ color: status === 'documents_required' ? '#C2410C' : '#1D6FE8', flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: '800', color: status === 'documents_required' ? '#9A3412' : '#0F172A' }}>
+                      {status === 'documents_required' ? 'Action Required: Additional Documents Requested by Admin' : 'Admin Review Remarks'}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                      {supplier.approval_notes}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Document Form */}
+              <div style={{ backgroundColor: '#FFFFFF', borderRadius: '18px', padding: '24px', border: '1px solid #E2E8F0' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '850', color: '#0F172A', margin: '0 0 6px' }}>
+                  Upload Verification Document
+                </h3>
+                <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#64748B' }}>
+                  Upload requested compliance or legal identity documents for verification.
+                </p>
+
+                <form onSubmit={handleDocUpload} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr)) 160px', gap: '14px', alignItems: 'flex-end' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#475569', marginBottom: '6px' }}>Document Type *</label>
+                    <select
+                      value={docUploadType}
+                      onChange={e => setDocUploadType(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', backgroundColor: '#FFFFFF', outline: 'none' }}
+                    >
+                      <option value="id_proof">Government ID / Passport Proof</option>
+                      <option value="address_proof">Address Proof / Utility Bill</option>
+                      <option value="business_registration">Business Registration Certificate</option>
+                      <option value="gst_certificate">GST / Tax Registration Proof</option>
+                      <option value="pan_card">PAN Card</option>
+                      <option value="trade_license">Trade License / Commercial License</option>
+                      <option value="bank_statement">Bank Verification / Statement</option>
+                      <option value="other">Other Supporting Document</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#475569', marginBottom: '6px' }}>Select File (PDF, PNG, JPG) *</label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      required
+                      accept=".pdf,.png,.jpg,.jpeg,.webp"
+                      onChange={e => setDocUploadFile(e.target.files?.[0] || null)}
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '12px', backgroundColor: '#FFFFFF' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={docUploading}
+                    style={{
+                      padding: '11px 18px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: '#1D6FE8',
+                      color: '#FFFFFF',
+                      fontSize: '13px',
+                      fontWeight: '800',
+                      cursor: docUploading ? 'wait' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      height: '42px'
+                    }}
+                  >
+                    {docUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                    {docUploading ? 'Uploading…' : 'Upload & Submit'}
+                  </button>
+                </form>
               </div>
 
               {/* Submitted Documents Grid */}

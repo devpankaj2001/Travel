@@ -332,143 +332,12 @@ export default function AdminDashboardPage() {
   });
 
   return (
-    <AdminShell title="Dashboard">
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#FAFAF8',
-      color: '#0F172A',
-      fontFamily: "'Manrope', -apple-system, sans-serif"
-    }}>
-      {/* Luxury Brand Header */}
-      <header style={{
-        background: '#FFFFFF',
-        borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.03)'
-      }}>
-        <div style={{
-          maxWidth: '1360px',
-          margin: '0 auto',
-          padding: '0 24px',
-          height: '76px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
-                background: '#333F70',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#D6F5EE'
-              }}>
-                <Compass size={22} />
-              </div>
-              <span style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '-0.5px', color: '#333F70' }}>
-                TRAVEL<span style={{ color: '#0D9488' }}>.</span>
-              </span>
-            </Link>
-
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 12px',
-              borderRadius: '9999px',
-              backgroundColor: '#D6F5EE',
-              color: '#0D9488',
-              fontSize: '11px',
-              fontWeight: '800',
-              letterSpacing: '0.8px',
-              textTransform: 'uppercase'
-            }}>
-              <ShieldCheck size={14} /> Site Administration
-            </span>
-          </div>
-
-          {/* User profile & actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <button
-              onClick={loadAllData}
-              disabled={loading}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                borderRadius: '10px',
-                border: '1px solid #E2E8F0',
-                background: '#FFFFFF',
-                fontSize: '13px',
-                fontWeight: '700',
-                color: '#475569',
-                cursor: 'pointer'
-              }}
-            >
-              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
-            </button>
-
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '6px 14px',
-              borderRadius: '12px',
-              background: '#F8FAFC',
-              border: '1px solid #E2E8F0'
-            }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: '#333F70',
-                color: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: '800'
-              }}>
-                {(user?.first_name?.[0] || 'A').toUpperCase()}
-              </div>
-              <div style={{ fontSize: '13px' }}>
-                <span style={{ fontWeight: '800', color: '#0F172A' }}>{user?.first_name} {user?.last_name}</span>
-                <span style={{ display: 'block', fontSize: '11px', color: '#64748B' }}>{role?.toUpperCase()}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={logout}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                borderRadius: '10px',
-                border: '1px solid #E2E8F0',
-                background: '#FFFFFF',
-                fontSize: '13px',
-                fontWeight: '700',
-                color: '#EF4444',
-                cursor: 'pointer'
-              }}
-            >
-              <LogOut size={14} /> Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main style={{ maxWidth: '1360px', margin: '0 auto', padding: '36px 24px 80px' }}>
+    <AdminShell
+      title="Dashboard"
+      onRefresh={loadAllData}
+      refreshing={loading}
+    >
+      <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* Security Rule Notice Banner */}
         <div style={{
@@ -1624,7 +1493,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-      </main>
+      </div>
 
       {/* Decision Modal */}
       {actionSupplier && (
@@ -2367,7 +2236,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
-    </div>
     </AdminShell>
   );
 }

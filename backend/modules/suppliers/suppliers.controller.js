@@ -1,5 +1,7 @@
 const { query } = require('../../database/connection');
 const { recordActivityLog, recordAuditLog } = require('../../middleware/audit.middleware');
+const config = require('../../config');
+const { sendAdminSupplierDocumentsResubmittedEmail } = require('../../services/email.service');
 
 /**
  * Helper to generate default standard Master Services Agreement content
@@ -424,8 +426,38 @@ const uploadDocument = async (req, res, next) => {
       req
     });
 
-    if (suppliers[0].status === 'pending_verification') {
+    if (suppliers[0].status === 'pending_verification' || suppliers[0].status === 'documents_required') {
       await query("UPDATE suppliers SET status = 'under_review' WHERE id = ?", [supplierId]);
+
+      // Notify Admin team about resubmitted documents
+      try {
+        const suppRow = await query('SELECT s.*, u.email, u.first_name, u.last_name FROM suppliers s JOIN users u ON s.user_id = u.id WHERE s.id = ?', [supplierId]);
+        const adminUsers = await query(`SELECT u.id, u.email FROM users u JOIN roles r ON u.role_id = r.id WHERE r.slug IN ('admin', 'site_admin') AND u.status = 'active'`);
+        const reviewUrl = `${config.app.frontendUrl}/admin/suppliers/${supplierId}`;
+
+        for (const admin of adminUsers) {
+          await query(
+            `INSERT INTO notifications (user_id, title, message, type, status, metadata)
+             VALUES (?, ?, ?, 'system', 'sent', ?)`,
+            [
+              admin.id,
+              'Requested Documents Submitted',
+              `${suppRow[0]?.company_name || 'Supplier'} has uploaded requested verification documents.`,
+              JSON.stringify({ supplierId, kind: 'supplier_docs', href: `/admin/suppliers/${supplierId}` })
+            ]
+          );
+
+          if (typeof sendAdminSupplierDocumentsResubmittedEmail === 'function') {
+            await sendAdminSupplierDocumentsResubmittedEmail({
+              admin,
+              supplier: suppRow[0] || suppliers[0],
+              reviewUrl
+            }).catch(() => {});
+          }
+        }
+      } catch (notifErr) {
+        console.error('[Admin Notification Error]:', notifErr.message);
+      }
     }
 
     return res.status(201).json({

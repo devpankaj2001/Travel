@@ -254,6 +254,14 @@ export const authService = {
     return apiRequest(`/admin/suppliers/${supplierId}/status`, { method: 'PUT', body: data });
   },
 
+  async requestSupplierDocuments(supplierId, notes) {
+    return apiRequest(`/admin/suppliers/${supplierId}/request-documents`, { method: 'POST', body: { notes } });
+  },
+
+  async addSupplierRemarks(supplierId, remarks) {
+    return apiRequest(`/admin/suppliers/${supplierId}/remarks`, { method: 'POST', body: { remarks } });
+  },
+
   async approveSupplier(supplierId, notes) {
     return apiRequest(`/admin/suppliers/${supplierId}/approve`, { method: 'PUT', body: { notes } });
   },
@@ -280,6 +288,43 @@ export const authService = {
 
   async reassignAdminSupplierBooking(supplierId, data) {
     return apiRequest(`/admin/suppliers/${supplierId}/reassign-booking`, { method: 'POST', body: data });
+  },
+
+  // Admin Category & Sub-Category Management (Section 3.6)
+  async getAdminCategories() {
+    return apiRequest('/admin/categories', { method: 'GET' });
+  },
+
+  async createAdminCategory(data) {
+    return apiRequest('/admin/categories', { method: 'POST', body: data });
+  },
+
+  async updateAdminCategory(id, data) {
+    return apiRequest(`/admin/categories/${id}`, { method: 'PUT', body: data });
+  },
+
+  async deleteAdminCategory(id) {
+    return apiRequest(`/admin/categories/${id}`, { method: 'DELETE' });
+  },
+
+  async restoreAdminCategory(id) {
+    return apiRequest(`/admin/categories/${id}/restore`, { method: 'PUT' });
+  },
+
+  async createAdminSubcategory(mainId, data) {
+    return apiRequest(`/admin/categories/${mainId}/subcategories`, { method: 'POST', body: data });
+  },
+
+  async updateAdminSubcategory(id, data) {
+    return apiRequest(`/admin/subcategories/${id}`, { method: 'PUT', body: data });
+  },
+
+  async deleteAdminSubcategory(id) {
+    return apiRequest(`/admin/subcategories/${id}`, { method: 'DELETE' });
+  },
+
+  async restoreAdminSubcategory(id) {
+    return apiRequest(`/admin/subcategories/${id}/restore`, { method: 'PUT' });
   },
 
   async getAuditLogs(params = {}) {

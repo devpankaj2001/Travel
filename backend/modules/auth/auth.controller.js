@@ -584,7 +584,8 @@ const supplierSignup = async (req, res, next) => {
         email: registrationData.email,
         phone: registrationData.phone,
         status: 'pending_verification',
-        expires_in_minutes: config.sms.otpExpiryMinutes
+        expires_in_minutes: config.sms.otpExpiryMinutes,
+        otpCode: !config.app.isProduction ? otpResult.code : undefined
       }
     });
   } catch (error) {
@@ -884,7 +885,7 @@ const supplierResendOtp = async (req, res, next) => {
 
     if (users.length > 0) {
       const user = users[0];
-      await generateOtp({
+      const otpRes = await generateOtp({
         userId: user.id,
         email: user.email,
         phone: user.phone,
@@ -894,7 +895,10 @@ const supplierResendOtp = async (req, res, next) => {
 
       return res.status(200).json({
         success: true,
-        message: `A new verification code has been sent to your email and mobile number. It is valid for ${config.sms.otpExpiryMinutes} minutes.`
+        message: `A new verification code has been sent to your email and mobile number. It is valid for ${config.sms.otpExpiryMinutes} minutes.`,
+        data: {
+          otpCode: !config.app.isProduction ? otpRes.code : undefined
+        }
       });
     }
 
@@ -915,7 +919,7 @@ const supplierResendOtp = async (req, res, next) => {
       try { meta = JSON.parse(meta); } catch (_) {}
     }
 
-    await generateOtp({
+    const otpRes = await generateOtp({
       userId: null,
       email: meta.email,
       phone: meta.phone,
@@ -930,7 +934,10 @@ const supplierResendOtp = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: `A new verification code has been sent to your email and mobile number. It is valid for ${config.sms.otpExpiryMinutes} minutes.`
+      message: `A new verification code has been sent to your email and mobile number. It is valid for ${config.sms.otpExpiryMinutes} minutes.`,
+      data: {
+        otpCode: !config.app.isProduction ? otpRes.code : undefined
+      }
     });
   } catch (error) {
     next(error);

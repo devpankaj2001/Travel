@@ -92,20 +92,26 @@ const corsOptions = {
     }
 
     if (!config.app.isProduction) {
-      // In development, be permissive with localhost/127.0.0.1
-      if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      // In development, be permissive with localhost, 127.0.0.1, and local LAN IPs (192.168.x.x, 10.x.x.x)
+      if (
+        origin.startsWith('http://localhost') ||
+        origin.startsWith('http://127.0.0.1') ||
+        origin.startsWith('http://192.168.') ||
+        origin.startsWith('http://10.')
+      ) {
         return callback(null, true);
       }
     }
 
-    return callback(new Error(`CORS blocked for origin: ${origin}. Add to ALLOWED_ORIGINS in .env.`));
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // HTTP Request logging
 app.use(morgan(config.app.isProduction ? 'combined' : 'dev'));

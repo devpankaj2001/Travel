@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
           <ToastProvider>
             <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               <Navbar />
-              <main style={{ flex: 1 }}>
+              <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 {children}
               </main>
               <Footer />

@@ -552,13 +552,29 @@ const updateSupplierStatus = async (req, res, next) => {
 
     if (status === 'suspended' || status === 'blocked') {
       await query(`UPDATE users SET status = 'suspended' WHERE id = ?`, [oldSupplier.user_id]);
-    } else if (status === 'documents_required') {
-      // Send notification / email to supplier requesting documents
-      await sendSupplierStatusEmail({
-        user: { id: oldSupplier.user_id, email: oldSupplier.email, first_name: oldSupplier.first_name },
-        status: 'documents_required',
-        reason: finalNote || 'Additional documentation required for compliance verification'
-      });
+    }
+
+    // Always send an email and in-system notification to supplier on status update or remarks
+    await sendSupplierStatusEmail({
+      user: { id: oldSupplier.user_id, email: oldSupplier.email, first_name: oldSupplier.first_name },
+      status,
+      reason: finalNote,
+      reviewerEmail: req.user.email
+    });
+
+    try {
+      await query(
+        `INSERT INTO notifications (user_id, title, message, type, status, metadata)
+         VALUES (?, ?, ?, 'system', 'sent', ?)`,
+        [
+          oldSupplier.user_id,
+          `Supplier Application: ${status.replace(/_/g, ' ').toUpperCase()}`,
+          finalNote || `Your application status was updated to ${status.replace(/_/g, ' ')}.`,
+          JSON.stringify({ status, supplierId, notes: finalNote, timestamp: new Date().toISOString() })
+        ]
+      );
+    } catch (notifErr) {
+      console.error('[Notification Insert Error]:', notifErr.message);
     }
 
     await recordAuditLog({
@@ -574,8 +590,150 @@ const updateSupplierStatus = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: `Supplier status changed to ${status}`,
-      data: { status }
+      message: `Supplier status changed to ${status}${finalNote ? ` with remarks sent to ${oldSupplier.email}` : ''}`,
+      data: { status, notes: finalNote }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Request Missing Documents / Information from Supplier
+ * POST /api/v1/admin/suppliers/:id/request-documents
+ */
+const requestSupplierDocuments = async (req, res, next) => {
+  try {
+    const supplierId = req.params.id;
+    const { notes, reason, requested_document_types = [] } = req.body;
+    const remarks = notes || reason;
+
+    if (!remarks || remarks.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide instructions or remarks detailing the missing documents or information.'
+      });
+    }
+
+    const suppliers = await query(
+      `SELECT s.*, u.email, u.first_name FROM suppliers s JOIN users u ON s.user_id = u.id WHERE s.id = ?`,
+      [supplierId]
+    );
+    if (suppliers.length === 0) {
+      return res.status(404).json({ success: false, message: 'Supplier not found' });
+    }
+    const supplier = suppliers[0];
+
+    await query(
+      `UPDATE suppliers SET status = 'documents_required', approval_notes = ? WHERE id = ?`,
+      [remarks, supplierId]
+    );
+
+    // Send email to supplier
+    await sendSupplierStatusEmail({
+      user: { id: supplier.user_id, email: supplier.email, first_name: supplier.first_name },
+      status: 'documents_required',
+      reason: remarks,
+      reviewerEmail: req.user.email
+    });
+
+    // In-system notification
+    try {
+      await query(
+        `INSERT INTO notifications (user_id, title, message, type, status, metadata)
+         VALUES (?, ?, ?, 'system', 'sent', ?)`,
+        [
+          supplier.user_id,
+          'Action Required: Additional Verification Documents Requested',
+          remarks,
+          JSON.stringify({
+            status: 'documents_required',
+            supplierId,
+            requestedTypes: requested_document_types,
+            timestamp: new Date().toISOString()
+          })
+        ]
+      );
+    } catch (notifErr) {
+      console.error('[Notification Insert Error]:', notifErr.message);
+    }
+
+    await recordAuditLog({
+      actorId: req.user.id,
+      entityType: 'suppliers',
+      entityId: supplierId,
+      action: 'REQUEST_SUPPLIER_DOCUMENTS',
+      oldValue: { status: supplier.status },
+      newValue: { status: 'documents_required', notes: remarks },
+      reason: remarks,
+      req
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Document request and remarks sent successfully to supplier (${supplier.email}).`,
+      data: { status: 'documents_required', notes: remarks }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Add Review Remarks for Supplier (and notify supplier via Email)
+ * POST /api/v1/admin/suppliers/:id/remarks
+ */
+const addSupplierRemarks = async (req, res, next) => {
+  try {
+    const supplierId = req.params.id;
+    const { remarks } = req.body;
+
+    if (!remarks || remarks.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Remarks text is required' });
+    }
+
+    const suppliers = await query(
+      `SELECT s.*, u.email, u.first_name FROM suppliers s JOIN users u ON s.user_id = u.id WHERE s.id = ?`,
+      [supplierId]
+    );
+    if (suppliers.length === 0) {
+      return res.status(404).json({ success: false, message: 'Supplier not found' });
+    }
+    const supplier = suppliers[0];
+
+    await query(
+      `UPDATE suppliers SET approval_notes = ? WHERE id = ?`,
+      [remarks, supplierId]
+    );
+
+    // Send email to supplier
+    await sendSupplierStatusEmail({
+      user: { id: supplier.user_id, email: supplier.email, first_name: supplier.first_name },
+      status: supplier.status,
+      reason: remarks,
+      reviewerEmail: req.user.email
+    });
+
+    // In-system notification
+    try {
+      await query(
+        `INSERT INTO notifications (user_id, title, message, type, status, metadata)
+         VALUES (?, ?, ?, 'system', 'sent', ?)`,
+        [
+          supplier.user_id,
+          'New Review Remarks from Admin',
+          remarks,
+          JSON.stringify({ supplierId, timestamp: new Date().toISOString() })
+        ]
+      );
+    } catch (notifErr) {
+      console.error('[Notification Insert Error]:', notifErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Remarks sent to supplier (${supplier.email}) successfully.`,
+      data: { notes: remarks }
     });
   } catch (error) {
     next(error);
@@ -791,6 +949,236 @@ const listAuditLogs = async (req, res, next) => {
   }
 };
 
+/**
+ * Category & Sub-Category Management (Section 3.6)
+ */
+const slugifyText = (str) => String(str || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+const listAdminCategories = async (req, res, next) => {
+  try {
+    const mainCategories = await query(`
+      SELECT mc.*,
+             COUNT(DISTINCT sc.id) AS subcategory_count,
+             COUNT(DISTINCT scm.supplier_id) AS supplier_count
+      FROM main_categories mc
+      LEFT JOIN sub_categories sc ON mc.id = sc.main_category_id
+      LEFT JOIN supplier_category_mappings scm ON mc.id = scm.main_category_id
+      GROUP BY mc.id
+      ORDER BY mc.display_order ASC, mc.id ASC
+    `);
+
+    const subCategories = await query(`
+      SELECT sc.*, mc.name AS main_category_name, mc.slug AS main_category_slug
+      FROM sub_categories sc
+      JOIN main_categories mc ON sc.main_category_id = mc.id
+      ORDER BY sc.display_order ASC, sc.id ASC
+    `);
+
+    const mapped = mainCategories.map(cat => ({
+      ...cat,
+      is_active: Boolean(cat.is_active),
+      subcategories: subCategories
+        .filter(sub => sub.main_category_id === cat.id)
+        .map(sub => ({
+          ...sub,
+          is_active: Boolean(sub.is_active),
+          is_other: Boolean(sub.is_other)
+        }))
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: mapped
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createAdminCategory = async (req, res, next) => {
+  try {
+    const { name, slug, description, icon_name, display_order = 0 } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Category name is required' });
+    }
+    const finalSlug = slug ? slugifyText(slug) : slugifyText(name);
+
+    const exist = await query('SELECT id FROM main_categories WHERE slug = ?', [finalSlug]);
+    if (exist.length > 0) {
+      return res.status(409).json({ success: false, message: 'A category with this slug already exists' });
+    }
+
+    const result = await query(
+      `INSERT INTO main_categories (name, slug, description, icon_name, display_order, is_active)
+       VALUES (?, ?, ?, ?, ?, 1)`,
+      [name.trim(), finalSlug, description || null, icon_name || null, parseInt(display_order, 10) || 0]
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Category created successfully',
+      data: { id: result.insertId, name: name.trim(), slug: finalSlug }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateAdminCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, slug, description, icon_name, display_order, is_active } = req.body;
+
+    const existing = await query('SELECT * FROM main_categories WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    const finalSlug = slug ? slugifyText(slug) : (name ? slugifyText(name) : existing[0].slug);
+    if (finalSlug !== existing[0].slug) {
+      const clash = await query('SELECT id FROM main_categories WHERE slug = ? AND id != ?', [finalSlug, id]);
+      if (clash.length > 0) {
+        return res.status(409).json({ success: false, message: 'Another category has this slug' });
+      }
+    }
+
+    await query(
+      `UPDATE main_categories
+       SET name = COALESCE(?, name),
+           slug = COALESCE(?, slug),
+           description = COALESCE(?, description),
+           icon_name = COALESCE(?, icon_name),
+           display_order = COALESCE(?, display_order),
+           is_active = COALESCE(?, is_active)
+       WHERE id = ?`,
+      [
+        name ? name.trim() : null,
+        finalSlug,
+        description !== undefined ? description : null,
+        icon_name !== undefined ? icon_name : null,
+        display_order !== undefined ? parseInt(display_order, 10) : null,
+        is_active !== undefined ? (is_active ? 1 : 0) : null,
+        id
+      ]
+    );
+
+    return res.status(200).json({ success: true, message: 'Category updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteAdminCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // Soft delete: set is_active = 0
+    await query('UPDATE main_categories SET is_active = 0 WHERE id = ?', [id]);
+    return res.status(200).json({ success: true, message: 'Category deactivated (soft-deleted) successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const restoreAdminCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await query('UPDATE main_categories SET is_active = 1 WHERE id = ?', [id]);
+    return res.status(200).json({ success: true, message: 'Category restored (activated) successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createAdminSubcategory = async (req, res, next) => {
+  try {
+    const mainCategoryId = req.params.id;
+    const { name, slug, display_order = 0, is_other = false } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Sub-category name is required' });
+    }
+    const finalSlug = slug ? slugifyText(slug) : slugifyText(name);
+
+    const exist = await query(
+      'SELECT id FROM sub_categories WHERE main_category_id = ? AND slug = ?',
+      [mainCategoryId, finalSlug]
+    );
+    if (exist.length > 0) {
+      return res.status(409).json({ success: false, message: 'Sub-category with this slug already exists under this category' });
+    }
+
+    const result = await query(
+      `INSERT INTO sub_categories (main_category_id, name, slug, is_other, display_order, is_active)
+       VALUES (?, ?, ?, ?, ?, 1)`,
+      [mainCategoryId, name.trim(), finalSlug, is_other ? 1 : 0, parseInt(display_order, 10) || 0]
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Sub-category created successfully',
+      data: { id: result.insertId, main_category_id: mainCategoryId, name: name.trim(), slug: finalSlug }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateAdminSubcategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, slug, display_order, is_other, is_active } = req.body;
+
+    const existing = await query('SELECT * FROM sub_categories WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: 'Sub-category not found' });
+    }
+
+    const finalSlug = slug ? slugifyText(slug) : (name ? slugifyText(name) : existing[0].slug);
+
+    await query(
+      `UPDATE sub_categories
+       SET name = COALESCE(?, name),
+           slug = COALESCE(?, slug),
+           display_order = COALESCE(?, display_order),
+           is_other = COALESCE(?, is_other),
+           is_active = COALESCE(?, is_active)
+       WHERE id = ?`,
+      [
+        name ? name.trim() : null,
+        finalSlug,
+        display_order !== undefined ? parseInt(display_order, 10) : null,
+        is_other !== undefined ? (is_other ? 1 : 0) : null,
+        is_active !== undefined ? (is_active ? 1 : 0) : null,
+        id
+      ]
+    );
+
+    return res.status(200).json({ success: true, message: 'Sub-category updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteAdminSubcategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // Soft delete: set is_active = 0
+    await query('UPDATE sub_categories SET is_active = 0 WHERE id = ?', [id]);
+    return res.status(200).json({ success: true, message: 'Sub-category deactivated (soft-deleted) successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const restoreAdminSubcategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await query('UPDATE sub_categories SET is_active = 1 WHERE id = ?', [id]);
+    return res.status(200).json({ success: true, message: 'Sub-category restored (activated) successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listRoles,
   listPermissions,
@@ -800,6 +1188,8 @@ module.exports = {
   getSupplierDetail,
   verifySupplierDocument,
   updateSupplierStatus,
+  requestSupplierDocuments,
+  addSupplierRemarks,
   approveSupplier,
   rejectSupplier,
   getRevenueReportOverview,
@@ -807,5 +1197,14 @@ module.exports = {
   getCustomTaxonomy,
   reviewCustomSubcategory,
   getSupplierAffectedBookings,
-  reassignSupplierBooking
+  reassignSupplierBooking,
+  listAdminCategories,
+  createAdminCategory,
+  updateAdminCategory,
+  deleteAdminCategory,
+  restoreAdminCategory,
+  createAdminSubcategory,
+  updateAdminSubcategory,
+  deleteAdminSubcategory,
+  restoreAdminSubcategory
 };

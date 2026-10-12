@@ -1,12 +1,12 @@
 const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
 /**
- * OTP Request Rate Limiter (TASK-S1-04)
- * Strict limit: Maximum 3 OTP requests per 10 minutes per IP/Target (email or phone)
+ * OTP Request Rate Limiter
+ * Strict limit: Maximum 3 OTP requests per 1 minute per IP/Target (email or phone)
  */
 const otpRateLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes window
-  max: 3, // Limit each IP/identifier to 3 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 3, // Maximum 3 requests per 1 minute
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {
@@ -20,8 +20,33 @@ const otpRateLimiter = rateLimit({
   handler: (req, res) => {
     return res.status(429).json({
       success: false,
-      message: 'Too many OTP requests. Maximum 3 requests allowed per 10 minutes. Please try again later.',
-      retryAfterMinutes: 10
+      message: 'Too many OTP requests. Maximum 3 requests allowed per 1 minute. Please wait 1 minute before requesting again.',
+      retryAfterMinutes: 1
+    });
+  }
+});
+
+/**
+ * OTP Verification Rate Limiter (Brute-force protection on verification code)
+ * Limit: Maximum 5 verification attempts per 10 minutes per IP/Target
+ */
+const otpVerifyRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes window
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const target = (req.body && (req.body.email || req.body.phone))
+      ? `${req.body.email || req.body.phone}`.toLowerCase().trim()
+      : (typeof ipKeyGenerator === 'function' ? ipKeyGenerator(req.ip) : req.ip);
+    return `otp-verify:${target}`;
+  },
+  validate: { keyGeneratorIpFallback: false },
+  handler: (req, res) => {
+    return res.status(429).json({
+      success: false,
+      message: 'Too many wrong OTP verification attempts. Your account is temporarily rate-limited. Please wait 15 minutes before trying again.',
+      retryAfterMinutes: 15
     });
   }
 });
@@ -45,5 +70,6 @@ const authRateLimiter = rateLimit({
 
 module.exports = {
   otpRateLimiter,
+  otpVerifyRateLimiter,
   authRateLimiter
 };
